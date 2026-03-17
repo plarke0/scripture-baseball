@@ -32,3 +32,6 @@ class DatabaseManager:
         
         for table in self.tables:
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {table}")
+            
+    def get_cursor(self):
+        return self.db.cursor()
