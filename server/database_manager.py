@@ -32,6 +32,22 @@ class DatabaseManager:
         
         for table in self.tables:
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {table}")
-            
-    def get_cursor(self):
-        return self.db.cursor()
+    
+    def select_one(self, sql: str, val: tuple) -> tuple | None:
+        cursor = self.db.cursor()
+        cursor.execute(sql, val)
+        query_list: list[tuple] = cursor.fetchall() # type: ignore
+        
+        if len(query_list) == 0:
+            return
+        
+        if len(query_list) > 1:
+            raise ValueError("Found more than one entry for the given SELECT")
+        
+        return query_list[0]
+    
+    def insert_with_commit(self, sql: str, val: tuple) -> None:
+        cursor = self.db.cursor()
+        cursor.execute(sql, val)
+
+        self.db.commit()
