@@ -1,6 +1,6 @@
 from shared.data_classes import UserData
 
-class AuthDAO:
+class UserDAO:
     
     def __init__(self) -> None:
         ...

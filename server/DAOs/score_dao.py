@@ -1,6 +1,6 @@
 from shared.data_classes import ScoreData
 
-class AuthDAO:
+class ScoreDAO:
     
     def __init__(self) -> None:
         ...
