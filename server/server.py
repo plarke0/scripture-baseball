@@ -1,3 +1,8 @@
+from server.api_handlers import APIHandlers
+from server.DAOs.auth_dao import AuthDAO
+from server.DAOs.user_dao import UserDAO
+from server.DAOs.score_dao import ScoreDAO
+from shared.data_classes import AuthData
 from shared.request_classes import VerseRequest, RegisterRequest, LoginRequest, UpdateHighscoreRequest, TopScoresRequest
 from shared.response_classes import VerseResponse, RegisterResponse, LoginResponse, HighscoreResponse, TopScoresResponse
 
