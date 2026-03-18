@@ -3,8 +3,10 @@ from server.DAOs.auth_dao import AuthDAO
 from server.DAOs.user_dao import UserDAO
 from server.DAOs.score_dao import ScoreDAO
 from shared.data_classes import AuthData
+from shared.data_classes import UserData
 from shared.request_classes import VerseRequest, RegisterRequest, LoginRequest, UpdateHighscoreRequest, TopScoresRequest
 from shared.response_classes import VerseResponse, RegisterResponse, LoginResponse, HighscoreResponse, TopScoresResponse
+import uuid
 
 class Server:
     
@@ -25,7 +27,15 @@ class Server:
         return VerseResponse(chapter, chapter[verse_number-1])
         
     def register_user(self, register_request: RegisterRequest) -> RegisterResponse:
-        ...
+        username: str = register_request.username
+        email: str = register_request.email
+        password: str = register_request.password
+        self.user_dao.insert_user(UserData(username, email, password))
+        
+        auth_token = str(uuid.uuid4())
+        self.auth_dao.insert_auth(AuthData(username, auth_token))
+        
+        return RegisterResponse(auth_token)
         
     def login_user(self, login_request: LoginRequest) -> LoginResponse:
         ...
