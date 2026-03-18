@@ -17,4 +17,6 @@ class UserDAO:
         return UserData(user[0], user[1], user[2])
         
     def insert_user(self, user_data: UserData) -> None:
-        ...
+        sql = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)"
+        val = (user_data.username, user_data.email, user_data.password)
+        self.db_manager.insert_with_commit(sql, val)
