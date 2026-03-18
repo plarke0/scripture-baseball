@@ -7,7 +7,6 @@ class AuthDAO:
         self.db_manager = DatabaseManager()
         
     def get_auth(self, auth_token: str) -> AuthData | None:
-        cursor = self.db_manager.get_cursor()
         sql = "SELECT user_id, auth_token FROM auths WHERE auth_token = %s"
         val = (auth_token, )
         
@@ -19,7 +18,9 @@ class AuthDAO:
         
         
     def insert_auth(self, auth_data: AuthData) -> None:
-        ...
+        sql = "INSERT INTO auths (user_id, auth_token) VALUES (%s, %s)"
+        val = (auth_data.username, auth_data.auth_token)
+        self.db_manager.insert_with_commit(sql, val)
         
     def delete_auth(self, auth_data: AuthData) -> None:
         ...
