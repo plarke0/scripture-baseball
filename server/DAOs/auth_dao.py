@@ -8,7 +8,9 @@ class AuthDAO:
         
     def get_auth(self, auth_token: str) -> AuthData | None:
         cursor = self.db_manager.get_cursor()
-        cursor.execute(f"SELECT user_id, auth_token FROM auths WHERE auth_token={auth_token}")
+        sql = "SELECT user_id, auth_token FROM auths WHERE auth_token = %s"
+        values = (auth_token, )
+        cursor.execute(sql, values)
         query_list: list[tuple] = cursor.fetchall() # type: ignore
         
         if len(query_list) == 0:
