@@ -24,11 +24,11 @@ class AuthDAO:
         if not self.db_manager.select_one(sql, val):
             sql = "INSERT INTO auths (user_id, auth_token) VALUES (%s, %s)"
             val = (auth_data.username, auth_data.auth_token)
-            self.db_manager.insert_with_commit(sql, val)
+            self.db_manager.execute_with_commit(sql, val)
         else:
             sql = "UPDATE auths SET auth_token = %s WHERE user_id = %s"
             val = (auth_data.auth_token, auth_data.username)
-            self.db_manager.insert_with_commit(sql, val)
+            self.db_manager.execute_with_commit(sql, val)
         
     def delete_auth(self, auth_data: AuthData) -> None:
         ...

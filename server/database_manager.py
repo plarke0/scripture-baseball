@@ -46,7 +46,7 @@ class DatabaseManager:
         
         return query_list[0]
     
-    def insert_with_commit(self, sql: str, val: tuple) -> None:
+    def execute_with_commit(self, sql: str, val: tuple) -> None:
         cursor = self.db.cursor()
         cursor.execute(sql, val)
 
