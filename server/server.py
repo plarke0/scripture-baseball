@@ -34,10 +34,9 @@ class Server:
         hashed_password: str = PasswordHasher.hash_password(password)
         self.user_dao.insert_user(UserData(username, email, hashed_password))
         
-        auth_token = str(uuid.uuid4())
-        self.auth_dao.insert_auth(AuthData(username, auth_token))
+        auth_data: AuthData = self.create_auth(username)
         
-        return RegisterResponse(auth_token)
+        return RegisterResponse(auth_data.auth_token)
         
     def login_user(self, login_request: LoginRequest) -> LoginResponse:
         ...
@@ -58,3 +57,9 @@ class Server:
         auth_data: AuthData | None = self.auth_dao.get_auth(auth_token)
         if auth_data is None:
             raise ValueError("Invalid auth token")
+        
+    def create_auth(self, username: str) -> AuthData:
+        auth_token = str(uuid.uuid4())
+        auth_data: AuthData = AuthData(username, auth_token)
+        self.auth_dao.insert_auth(auth_data)
+        return auth_data
