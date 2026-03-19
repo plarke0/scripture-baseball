@@ -39,7 +39,19 @@ class Server:
         return RegisterResponse(auth_data.auth_token)
         
     def login_user(self, login_request: LoginRequest) -> LoginResponse:
-        ...
+        username: str = login_request.username
+        password: str = login_request.password
+        user_data: UserData | None = self.user_dao.get_user(username)
+        
+        if user_data is None:
+            raise ValueError("Username does not exist")
+        
+        if not PasswordHasher.check_password(password, user_data.password):
+            raise ValueError("Incorrect password")
+        
+        auth_data: AuthData = self.create_auth(username)
+        
+        return LoginResponse(auth_data.auth_token)
         
     def logout_user(self, auth_token: str) -> None:
         ...
