@@ -16,7 +16,6 @@ class AuthDAO:
         
         return AuthData(auth[0], auth[1])
         
-        
     def insert_auth(self, auth_data: AuthData) -> None:
         sql = "SELECT user_id, auth_token FROM auths WHERE user_id = %s"
         val = (auth_data.username, )
@@ -31,4 +30,7 @@ class AuthDAO:
             self.db_manager.execute_with_commit(sql, val)
         
     def delete_auth(self, auth_data: AuthData) -> None:
-        ...
+        sql = "DELETE FROM auths WHERE auth_token = %s"
+        val = (auth_data.auth_token, )
+        
+        self.db_manager.execute_with_commit(sql, val)
