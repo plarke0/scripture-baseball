@@ -5,7 +5,7 @@ class PasswordHasher:
     @staticmethod
     def hash_password(plain_text: str) -> str:
         byte_text: bytes = plain_text.encode()
-        return str(bcrypt.hashpw(password=byte_text, salt=bcrypt.gensalt()))
+        return bcrypt.hashpw(password=byte_text, salt=bcrypt.gensalt()).decode()
     
     @staticmethod
     def check_password(plain_text: str, hash_text: str) -> bool:
