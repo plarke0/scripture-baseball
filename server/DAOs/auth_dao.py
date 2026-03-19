@@ -12,7 +12,7 @@ class AuthDAO:
         
         auth = self.db_manager.select_one(sql, val)
         if auth is None:
-            return
+            return None
         
         return AuthData(auth[0], auth[1])
         
