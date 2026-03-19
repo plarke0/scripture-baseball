@@ -6,6 +6,7 @@ from shared.data_classes import AuthData
 from shared.data_classes import UserData
 from shared.request_classes import VerseRequest, RegisterRequest, LoginRequest, UpdateHighscoreRequest, TopScoresRequest
 from shared.response_classes import VerseResponse, RegisterResponse, LoginResponse, HighscoreResponse, TopScoresResponse
+from server.password_hashing import PasswordHasher
 import uuid
 
 class Server:
@@ -30,7 +31,8 @@ class Server:
         username: str = register_request.username
         email: str = register_request.email
         password: str = register_request.password
-        self.user_dao.insert_user(UserData(username, email, password))
+        hashed_password: str = PasswordHasher.hash_password(password)
+        self.user_dao.insert_user(UserData(username, email, hashed_password))
         
         auth_token = str(uuid.uuid4())
         self.auth_dao.insert_auth(AuthData(username, auth_token))
