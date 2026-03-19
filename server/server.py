@@ -54,7 +54,7 @@ class Server:
         return LoginResponse(auth_data.auth_token)
         
     def logout_user(self, auth_token: str) -> None:
-        ...
+        self.auth_dao.delete_auth(auth_token)
         
     def get_highscore(self, auth_token: str) -> HighscoreResponse:
         ...
