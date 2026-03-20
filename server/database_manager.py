@@ -46,6 +46,12 @@ class DatabaseManager:
         
         return query_list[0]
     
+    def select_many(self, sql: str, val: tuple) -> list[tuple]:
+        cursor = self.db.cursor()
+        cursor.execute(sql, val)
+        query_list: list[tuple] = cursor.fetchall() # type: ignore
+        return query_list
+    
     def execute_with_commit(self, sql: str, val: tuple) -> None:
         cursor = self.db.cursor()
         cursor.execute(sql, val)
