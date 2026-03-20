@@ -33,6 +33,8 @@ class Server:
         hashed_password: str = PasswordHasher.hash_password(password)
         self.user_dao.insert_user(UserData(username, email, hashed_password))
         
+        self.score_dao.update_highscore(HighscoreData(username, 0))
+        
         auth_data: AuthData = self.create_auth(username)
         
         return RegisterResponse(auth_data.auth_token)
