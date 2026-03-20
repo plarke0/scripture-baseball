@@ -70,7 +70,16 @@ class Server:
         return HighscoreResponse(highscore_data)
         
     def update_highscore(self, auth_token: str, update_highscore_request: UpdateHighscoreRequest) -> None:
-        ...
+        self.check_auth(auth_token)
+        
+        auth_data: AuthData | None = self.auth_dao.get_auth(auth_token)
+        if auth_data is None:
+            raise ValueError("Invalid auth token")
+        
+        username: str = auth_data.username
+        highscore: int = update_highscore_request.score
+        
+        self.score_dao.update_highscore(HighscoreData(username, highscore))
         
     def get_top(self, auth_token: str, top_scores_request: TopScoresRequest) -> TopScoresResponse:
         ...
