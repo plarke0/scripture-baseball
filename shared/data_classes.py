@@ -9,7 +9,7 @@ class UserData:
         self.email: str = email
         self.password: str = password
     
-class ScoreData:
-    def __init__(self, username: str, score: int) -> None:
+class HighscoreData:
+    def __init__(self, username: str, highscore: int) -> None:
         self.username: str = username
-        self.score: int = score
+        self.highscore: int = highscore

@@ -14,9 +14,9 @@ class LoginResponse:
         self.auth_token: str = auth_token
     
 class HighscoreResponse:
-    def __init__(self, score: ScoreData) -> None:
-        self.score: ScoreData = score
+    def __init__(self, highscore: HighscoreData) -> None:
+        self.highscore: HighscoreData = highscore
     
 class TopScoresResponse:
-    def __init__(self, top_scores: list[ScoreData]) -> None:
-        self.top_scores: list[ScoreData] = top_scores
+    def __init__(self, top_scores: list[HighscoreData]) -> None:
+        self.top_scores: list[HighscoreData] = top_scores

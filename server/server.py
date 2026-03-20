@@ -2,8 +2,7 @@ from server.api_handlers import APIHandlers
 from server.DAOs.auth_dao import AuthDAO
 from server.DAOs.user_dao import UserDAO
 from server.DAOs.score_dao import ScoreDAO
-from shared.data_classes import AuthData
-from shared.data_classes import UserData
+from shared.data_classes import AuthData, UserData, HighscoreData
 from shared.request_classes import VerseRequest, RegisterRequest, LoginRequest, UpdateHighscoreRequest, TopScoresRequest
 from shared.response_classes import VerseResponse, RegisterResponse, LoginResponse, HighscoreResponse, TopScoresResponse
 from server.password_hashing import PasswordHasher
