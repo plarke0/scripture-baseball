@@ -1,4 +1,4 @@
-from shared.data_classes import ScoreData
+from shared.data_classes import HighscoreData
 
 class VerseResponse:
     def __init__(self, chapter: list[str], verse: str) -> None:
