@@ -58,7 +58,16 @@ class Server:
         self.auth_dao.delete_auth(auth_token)
         
     def get_highscore(self, auth_token: str) -> HighscoreResponse:
-        ...
+        self.check_auth(auth_token)
+        
+        auth_data: AuthData | None = self.auth_dao.get_auth(auth_token)
+        if auth_data is None:
+            raise ValueError("Invalid auth token")
+        
+        username: str = auth_data.username
+        
+        highscore_data: HighscoreData = self.score_dao.get_highscore(username)
+        return HighscoreResponse(highscore_data)
         
     def update_highscore(self, auth_token: str, update_highscore_request: UpdateHighscoreRequest) -> None:
         ...

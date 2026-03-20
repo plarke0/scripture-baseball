@@ -5,11 +5,15 @@ class ScoreDAO:
     def __init__(self) -> None:
         ...
         
-    def update_highscore(self, score_data: ScoreData) -> None:
-        ...
+    def get_highscore(self, username: str) -> HighscoreData:
+        sql = "SELECT user_id, score FROM highscores WHERE user_id = %s"
+        val = (username, )
         
-    def get_auth(self, username: str) -> ScoreData:
-        ...
+        score = self.db_manager.select_one(sql, val)
+        if score is None:
+            return HighscoreData(username, 0)
+        
+        return HighscoreData(score[0], score[1])
         
     def get_top_scores(self, count: int) -> list[ScoreData]:
         ...
