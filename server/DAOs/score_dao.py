@@ -1,4 +1,5 @@
-from shared.data_classes import ScoreData
+from server.database_manager import DatabaseManager
+from shared.data_classes import HighscoreData
 
 class ScoreDAO:
     
@@ -28,5 +29,9 @@ class ScoreDAO:
         
         return HighscoreData(score[0], score[1])
         
-    def get_top_scores(self, count: int) -> list[ScoreData]:
-        ...
+    def get_top_scores(self, count: int) -> list[HighscoreData]:
+        sql = "SELECT user_id, score FROM highscores ORDER BY score DESC LIMIT %s"
+        val = (count, )
+        
+        scores = self.db_manager.select_many(sql, val)
+        return [HighscoreData(score[0], score[1]) for score in scores]

@@ -82,7 +82,12 @@ class Server:
         self.score_dao.update_highscore(HighscoreData(username, highscore))
         
     def get_top(self, auth_token: str, top_scores_request: TopScoresRequest) -> TopScoresResponse:
-        ...
+        self.check_auth(auth_token)
+        
+        count: int = top_scores_request.count
+        
+        top_scores: list[HighscoreData] = self.score_dao.get_top_scores(count)
+        return TopScoresResponse(top_scores)
         
     def check_auth(self, auth_token: str) -> None:
         auth_data: AuthData | None = self.auth_dao.get_auth(auth_token)
