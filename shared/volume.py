@@ -10,10 +10,46 @@ class Volume:
 		self._book_order: list[str] = []
 		self._book_to_index: dict[str, int] = {}
 		self._book_to_id: dict[str, str] = {}
+		self._book_id_to_name: dict[str, str] = {}
 		self._book_to_chapters: dict[str, list[int]] = {}
 		self._book_to_total_verses: dict[str, int] = {}
 		self._rng: random.Random = rng if rng is not None else random.Random()
 		self._load_from_json(json_file_path)
+
+	@property
+	def volume_id(self) -> str:
+		return self._volume_id
+
+	def get_book_id(self, book_name: str) -> str:
+		normalized_book: str = self._validate_book(book_name)
+		return self._book_to_id[normalized_book]
+
+	def get_book_name(self, book_id: str) -> str:
+		if not isinstance(book_id, str) or not book_id.strip():
+			raise ValueError("Book id must be a non-empty string")
+
+		normalized_book_id: str = book_id.strip()
+		if normalized_book_id not in self._book_id_to_name:
+			raise ValueError(f"Unknown book id: {normalized_book_id}")
+
+		return self._book_id_to_name[normalized_book_id]
+
+	def get_book_index(self, book_name: str) -> int:
+		normalized_book: str = self._validate_book(book_name)
+		return self._book_to_index[normalized_book]
+
+	def get_book_index_by_id(self, book_id: str) -> int:
+		book_name: str = self.get_book_name(book_id)
+		return self._book_to_index[book_name]
+
+	def validate_verse_reference(self, book_name: str, chapter: int, verse: int) -> None:
+		chapter_verse_count: int = self.get_chapter_verse_count(book_name, chapter)
+		if not isinstance(verse, int):
+			raise ValueError("Verse must be an integer")
+		if verse < 1 or verse > chapter_verse_count:
+			raise ValueError(
+				f"Invalid verse {verse} for {book_name} chapter {chapter}"
+			)
 
 	def get_chapter_verse_count(self, book: str, chapter: int) -> int:
 		normalized_book: str = self._validate_book(book)
@@ -145,6 +181,7 @@ class Volume:
 			self._book_order.append(book_name)
 			self._book_to_index[book_name] = len(self._book_order) - 1
 			self._book_to_id[book_name] = book_id
+			self._book_id_to_name[book_id] = book_name
 			self._book_to_chapters[book_name] = validated_chapters
 			self._book_to_total_verses[book_name] = sum(validated_chapters)
 
