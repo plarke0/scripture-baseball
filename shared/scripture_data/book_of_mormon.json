@@ -26,7 +26,8 @@
         22,
         26,
         31
-      ]
+      ],
+      "id": "1nephi"
     },
     {
       "name": "2 Nephi",
@@ -64,7 +65,8 @@
         21,
         9,
         15
-      ]
+      ],
+      "id": "2nephi"
     },
     {
       "name": "Jacob",
@@ -76,31 +78,36 @@
         77,
         13,
         27
-      ]
+      ],
+      "id": "jacob"
     },
     {
       "name": "Enos",
       "chapters": [
         27
-      ]
+      ],
+      "id": "enos"
     },
     {
       "name": "Jarom",
       "chapters": [
         15
-      ]
+      ],
+      "id": "jarom"
     },
     {
       "name": "Omni",
       "chapters": [
         30
-      ]
+      ],
+      "id": "omni"
     },
     {
       "name": "Words of Mormon",
       "chapters": [
         18
-      ]
+      ],
+      "id": "wordsofmormon"
     },
     {
       "name": "Mosiah",
@@ -134,7 +141,8 @@
         37,
         20,
         47
-      ]
+      ],
+      "id": "mosiah"
     },
     {
       "name": "Alma",
@@ -202,7 +210,8 @@
         21,
         52,
         17
-      ]
+      ],
+      "id": "alma"
     },
     {
       "name": "Helaman",
@@ -223,7 +232,8 @@
         31,
         17,
         25
-      ]
+      ],
+      "id": "helaman"
     },
     {
       "name": "3 Nephi",
@@ -258,13 +268,15 @@
         40,
         9,
         2
-      ]
+      ],
+      "id": "3nephi"
     },
     {
       "name": "4 Nephi",
       "chapters": [
         49
-      ]
+      ],
+      "id": "4nephi"
     },
     {
       "name": "Mormon",
@@ -278,7 +290,8 @@
         10,
         41,
         37
-      ]
+      ],
+      "id": "mormon"
     },
     {
       "name": "Ether",
@@ -298,7 +311,8 @@
         31,
         31,
         34
-      ]
+      ],
+      "id": "ether"
     },
     {
       "name": "Moroni",
@@ -313,7 +327,9 @@
         30,
         26,
         34
-      ]
+      ],
+      "id": "moroni"
     }
-  ]
+  ],
+  "id": "bookofmormon"
 }

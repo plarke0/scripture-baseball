@@ -12,7 +12,8 @@
         68,
         69,
         30
-      ]
+      ],
+      "id": "moses"
     },
     {
       "name": "Abraham",
@@ -22,25 +23,30 @@
         28,
         31,
         21
-      ]
+      ],
+      "id": "abraham"
     },
     {
       "name": "Joseph Smith\u2014Matthew",
       "chapters": [
         55
-      ]
+      ],
+      "id": "josephsmithmatthew"
     },
     {
       "name": "Joseph Smith\u2014History",
       "chapters": [
         75
-      ]
+      ],
+      "id": "josephsmithhistory"
     },
     {
       "name": "Articles of Faith",
       "chapters": [
         13
-      ]
+      ],
+      "id": "articlesoffaith"
     }
-  ]
+  ],
+  "id": "pearlofgreatprice"
 }
