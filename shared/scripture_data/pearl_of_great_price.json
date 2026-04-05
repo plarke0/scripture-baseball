@@ -1,0 +1,46 @@
+{
+  "volume": "Pearl of Great Price",
+  "books": [
+    {
+      "name": "Moses",
+      "chapters": [
+        42,
+        31,
+        25,
+        32,
+        59,
+        68,
+        69,
+        30
+      ]
+    },
+    {
+      "name": "Abraham",
+      "chapters": [
+        31,
+        25,
+        28,
+        31,
+        21
+      ]
+    },
+    {
+      "name": "Joseph Smith\u2014Matthew",
+      "chapters": [
+        55
+      ]
+    },
+    {
+      "name": "Joseph Smith\u2014History",
+      "chapters": [
+        75
+      ]
+    },
+    {
+      "name": "Articles of Faith",
+      "chapters": [
+        13
+      ]
+    }
+  ]
+}
