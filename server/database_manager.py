@@ -6,7 +6,7 @@ class DatabaseManager:
     tables: list[str] = [
         "users (username VARCHAR(255) PRIMARY KEY NOT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL)",
         "auths (user_id VARCHAR(255), auth_token VARCHAR(255), FOREIGN KEY(user_id) REFERENCES users(username))",
-        "highscores (user_id VARCHAR(255) NOT NULL, score INT, FOREIGN KEY(user_id) REFERENCES users(username))"
+        "highscores (user_id VARCHAR(255) NOT NULL, category_id VARCHAR(255) NOT NULL, score INT, PRIMARY KEY(user_id, category_id), FOREIGN KEY(user_id) REFERENCES users(username))"
     ]
     
     def __init__(self):

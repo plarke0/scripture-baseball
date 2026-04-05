@@ -10,6 +10,7 @@ class UserData:
         self.password: str = password
     
 class HighscoreData:
-    def __init__(self, username: str, highscore: int) -> None:
+    def __init__(self, username: str, category_id: str, highscore: int) -> None:
         self.username: str = username
+        self.category_id: str = category_id
         self.highscore: int = highscore

@@ -33,8 +33,6 @@ class Server:
         hashed_password: str = PasswordHasher.hash_password(password)
         self.user_dao.insert_user(UserData(username, email, hashed_password))
         
-        self.score_dao.update_highscore(HighscoreData(username, 0))
-        
         auth_data: AuthData = self.create_auth(username)
         
         return RegisterResponse(auth_data.auth_token)
@@ -57,7 +55,7 @@ class Server:
     def logout_user(self, auth_token: str) -> None:
         self.auth_dao.delete_auth(auth_token)
         
-    def get_highscore(self, auth_token: str) -> HighscoreResponse:
+    def get_highscore(self, auth_token: str, category_id: str) -> HighscoreResponse:
         self.check_auth(auth_token)
         
         auth_data: AuthData | None = self.auth_dao.get_auth(auth_token)
@@ -66,10 +64,10 @@ class Server:
         
         username: str = auth_data.username
         
-        highscore_data: HighscoreData = self.score_dao.get_highscore(username)
+        highscore_data: HighscoreData = self.score_dao.get_highscore(username, category_id)
         return HighscoreResponse(highscore_data)
         
-    def update_highscore(self, auth_token: str, update_highscore_request: UpdateHighscoreRequest) -> None:
+    def update_highscore(self, auth_token: str, category_id: str, update_highscore_request: UpdateHighscoreRequest) -> None:
         self.check_auth(auth_token)
         
         auth_data: AuthData | None = self.auth_dao.get_auth(auth_token)
@@ -79,14 +77,14 @@ class Server:
         username: str = auth_data.username
         highscore: int = update_highscore_request.score
         
-        self.score_dao.update_highscore(HighscoreData(username, highscore))
+        self.score_dao.update_highscore(HighscoreData(username, category_id, highscore))
         
-    def get_top(self, auth_token: str, top_scores_request: TopScoresRequest) -> TopScoresResponse:
+    def get_top(self, auth_token: str, category_id: str, top_scores_request: TopScoresRequest) -> TopScoresResponse:
         self.check_auth(auth_token)
         
         count: int = top_scores_request.count
         
-        top_scores: list[HighscoreData] = self.score_dao.get_top_scores(count)
+        top_scores: list[HighscoreData] = self.score_dao.get_top_scores(category_id, count)
         return TopScoresResponse(top_scores)
         
     def check_auth(self, auth_token: str) -> None:
