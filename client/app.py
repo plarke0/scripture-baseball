@@ -153,6 +153,17 @@ class ScriptureBaseballApp(App):
             self.leaderboard_panel.set_status("Login is required to view leaderboards.")
             return
 
+        category_name = category_id
+        mode_name = mode_id
+        for category in self.game.get_available_categories():
+            if category.get("id") == category_id:
+                category_name = str(category.get("name", category_id))
+                break
+        for mode in self.game.get_available_modes():
+            if mode.get("id") == mode_id:
+                mode_name = str(mode.get("name", mode_id))
+                break
+
         leaderboard_key = self._build_score_category_id(category_id, mode_id)
         try:
             top_scores = self.facade.get_top(self.session.auth_token, leaderboard_key, 10).top_scores
@@ -166,7 +177,7 @@ class ScriptureBaseballApp(App):
             rows.append(f"{index}. {score.username} - {score.highscore}")
 
         self.leaderboard_panel.set_rows(
-            f"[bold]Top Scores ({category_id} / {mode_id})[/bold]\nYour Highscore: {my_score.highscore}",
+            f"[bold]Top Scores ({category_name}: {mode_name})[/bold]\nYour Highscore: {my_score.highscore}",
             rows,
         )
         self.leaderboard_panel.set_status("")
