@@ -3,9 +3,9 @@
     "max_round_points": 1000,
     "finite_hint_multiplier": 0.5,
     "tiers": {
-      "verse": { "min": 650, "max": 950 },
-      "chapter": { "min": 250, "max": 649 },
-      "book": { "min": 25, "max": 249 }
+      "verse": { "min": 500, "max": 950 },
+      "chapter": { "min": 50, "max": 499 },
+      "book": { "min": 0, "max": 49 }
     }
   },
   "modes": [
