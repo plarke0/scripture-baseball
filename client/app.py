@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Header
 
@@ -13,6 +15,8 @@ from client.screens.register import RegisterPanel
 from client.screens.results import ResultsPanel
 from client.screens.setup import SetupPanel
 from shared.game import Game
+from shared.request_classes import VerseRequest
+from shared.response_classes import VerseResponse
 
 
 class ScriptureBaseballApp(App):
@@ -212,6 +216,9 @@ class ScriptureBaseballApp(App):
         self.leaderboard_panel.set_status("")
 
     def next_round(self) -> None:
+        if self.session.is_round_loading:
+            self.game_panel.set_feedback("[yellow]Selecting verse...[/yellow]")
+            return
         if not self.session.round_submitted:
             self.game_panel.set_feedback("[red]Submit an answer before continuing.[/red]")
             return
@@ -221,12 +228,18 @@ class ScriptureBaseballApp(App):
         self._start_round()
 
     def handle_round_action(self, answer_text: str) -> None:
+        if self.session.is_round_loading:
+            self.game_panel.set_feedback("[yellow]Selecting verse...[/yellow]")
+            return
         if self.session.round_submitted:
             self.next_round()
             return
         self.submit_answer(answer_text)
 
     def request_hint(self) -> None:
+        if self.session.is_round_loading:
+            self.game_panel.set_feedback("[yellow]Selecting verse...[/yellow]")
+            return
         if self.session.round_submitted:
             if self.game.is_game_over():
                 self.game_panel.set_feedback("[red]Game is complete. Press End Game to view results.[/red]")
@@ -298,22 +311,64 @@ class ScriptureBaseballApp(App):
         self._show_only("game")
 
     def _start_round(self) -> None:
+        if self.session.is_round_loading:
+            return
+
         selected = self.game.start_round()
         self.session.current_round = self.game.get_round_number()
         self.session.current_target = selected
-        verse_response = self.facade.get_verse(self.session.auth_token or "", selected)
-        self.game.set_chapter_data(verse_response.chapter)
         self.session.hint_lines = []
         self.session.hint_target_index = None
         self.session.round_submitted = False
-        self.session.feedback = ""
+        self.session.feedback = "[yellow]Selecting verse...[/yellow]"
+        self.session.is_round_loading = True
+        self.session.round_request_id += 1
+        request_id = self.session.round_request_id
+
         self._show_only("game")
         self.game_panel.set_hint([], None)
-        self.game_panel.set_prompt(verse_response.verse)
+        self.game_panel.set_prompt("[dim]Selecting verse...[/dim]")
         self._refresh_game_panel()
         self.game_panel.clear_answer()
-        self.game_panel.set_feedback("")
+        self.game_panel.set_feedback(self.session.feedback)
         self._update_round_controls()
+
+        fetch_thread = threading.Thread(
+            target=self._fetch_round_verse,
+            args=(request_id, selected),
+            daemon=True,
+        )
+        fetch_thread.start()
+
+    def _fetch_round_verse(self, request_id: int, selected: VerseRequest) -> None:
+        try:
+            verse_response = self.facade.get_verse(self.session.auth_token or "", selected)
+        except Exception as error:
+            self.call_from_thread(self._complete_round_fetch_error, request_id, str(error))
+            return
+
+        self.call_from_thread(self._complete_round_fetch_success, request_id, verse_response)
+
+    def _complete_round_fetch_success(self, request_id: int, verse_response: VerseResponse) -> None:
+        if request_id != self.session.round_request_id:
+            return
+
+        self.session.is_round_loading = False
+        self.game.set_chapter_data(verse_response.chapter)
+        self.session.feedback = ""
+        self.game_panel.set_prompt(verse_response.verse)
+        self.game_panel.set_feedback("")
+        self._refresh_game_panel()
+
+    def _complete_round_fetch_error(self, request_id: int, error_message: str) -> None:
+        if request_id != self.session.round_request_id:
+            return
+
+        self.session.is_round_loading = False
+        self.session.feedback = f"[red]Unable to load verse: {error_message}[/red]"
+        self.game_panel.set_prompt("[dim]Verse unavailable[/dim]")
+        self.game_panel.set_feedback(self.session.feedback)
+        self._refresh_game_panel()
 
     def _finish_game(self) -> None:
         message = self._submit_current_score(finalize_message=True)
@@ -347,6 +402,14 @@ class ScriptureBaseballApp(App):
         self._update_round_controls()
 
     def _update_round_controls(self) -> None:
+        if self.session.is_round_loading:
+            self.game_panel.set_controls(
+                "Selecting Verse...",
+                False,
+                False,
+            )
+            return
+
         if self.session.round_submitted:
             if self.game.is_game_over():
                 self.game_panel.set_controls(

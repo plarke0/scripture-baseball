@@ -19,3 +19,5 @@ class ClientSessionState:
     hint_target_index: int | None = None
     round_submitted: bool = False
     feedback: str = ""
+    is_round_loading: bool = False
+    round_request_id: int = 0
