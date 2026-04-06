@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from textual.containers import Container
 from textual.widgets import Button, Input, Static
+from client.ui_theme import rich_text
 
 if TYPE_CHECKING:
     from client.app import ScriptureBaseballApp
@@ -11,15 +12,15 @@ if TYPE_CHECKING:
 
 class GamePanel(Container):
     def compose(self):
-        yield Static("[bold green]Game In Progress[/bold green]", id="game-title")
+        yield Static(rich_text("Game In Progress", "title", bold=True), id="game-title")
         yield Static("", id="round-info")
         yield Static("", id="score-info")
         yield Static("", id="lives-info")
         yield Static("", id="hints-remaining-info")
-        yield Static("[bold cyan]Verse to Guess[/bold cyan]", id="prompt-label")
+        yield Static(rich_text("Verse to Guess", "heading", bold=True), id="prompt-label")
         yield Static("", id="prompt-info")
-        yield Static("[dim]--------------------[/dim]", id="prompt-separator")
-        yield Static("[bold magenta]Hint Verses[/bold magenta]", id="hint-label")
+        yield Static(rich_text("--------------------", "separator", dim=True), id="prompt-separator")
+        yield Static(rich_text("Hint Verses", "hint_label", bold=True), id="hint-label")
         yield Static("", id="hint-output")
         yield Static("", id="feedback-output")
         yield Input(placeholder="Book Chapter:Verse", id="answer-input")
@@ -37,19 +38,22 @@ class GamePanel(Container):
         is_endless: bool,
     ) -> None:
         self.query_one("#round-info", Static).update(f"[bold]Round:[/bold] {round_progress}")
-        self.query_one("#score-info", Static).update(f"[bold yellow]Points:[/bold yellow] {score}")
+        points_label = rich_text("Points:", "score_label", bold=True)
+        self.query_one("#score-info", Static).update(f"{points_label} {score}")
         lives_text = ""
         if is_endless:
-            lives_text = f"[bold red]Lives:[/bold red] {lives_remaining if lives_remaining is not None else '--'}"
+            lives_label = rich_text("Lives:", "lives_label", bold=True)
+            lives_text = f"{lives_label} {lives_remaining if lives_remaining is not None else '--'}"
         self.query_one("#lives-info", Static).update(lives_text)
 
         hints_text = ""
         if is_endless:
-            hints_text = f"[bold magenta]Hints Remaining:[/bold magenta] {hints_remaining if hints_remaining is not None else '--'}"
+            hints_label = rich_text("Hints Remaining:", "hint_label", bold=True)
+            hints_text = f"{hints_label} {hints_remaining if hints_remaining is not None else '--'}"
         self.query_one("#hints-remaining-info", Static).update(hints_text)
 
     def set_prompt(self, prompt_text: str) -> None:
-        self.query_one("#prompt-info", Static).update(f"[bold cyan]{prompt_text}[/bold cyan]")
+        self.query_one("#prompt-info", Static).update(rich_text(prompt_text, "selected_verse", bold=True))
 
     def set_hint(self, hint_lines: list[str], target_index: int | None = None) -> None:
         hint_label = self.query_one("#hint-label", Static)
@@ -67,9 +71,9 @@ class GamePanel(Container):
         colored_lines: list[str] = []
         for index, line in enumerate(hint_lines):
             if target_index is not None and index == target_index:
-                colored_lines.append(f"[bold cyan]{line}[/bold cyan]")
+                colored_lines.append(rich_text(line, "selected_verse", bold=True))
             else:
-                colored_lines.append(f"[magenta]{line}[/magenta]")
+                colored_lines.append(rich_text(line, "hint"))
 
         hint_output.update("\n".join(colored_lines))
 

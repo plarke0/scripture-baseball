@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from textual.containers import Container
 from textual.widgets import Button, Static
+from client.ui_theme import rich_text
 
 if TYPE_CHECKING:
     from client.app import ScriptureBaseballApp
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 class ConfirmExitPanel(Container):
     def compose(self):
-        yield Static("[bold yellow]Leave Current Game?[/bold yellow]", id="confirm-exit-title")
+        yield Static(rich_text("Leave Current Game?", "feedback_warning", bold=True), id="confirm-exit-title")
         yield Static(
             "If you leave now, your current score will be submitted and you will return to the menu.",
             id="confirm-exit-message",

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from textual.containers import Container
 from textual.widgets import Button, Select, Static
+from client.ui_theme import rich_text
 
 if TYPE_CHECKING:
     from client.app import ScriptureBaseballApp
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 class LeaderboardPanel(Container):
     def compose(self):
-        yield Static("[bold magenta]Leaderboards[/bold magenta]", id="leaderboard-title")
+        yield Static(rich_text("Leaderboards", "section_title", bold=True), id="leaderboard-title")
         yield Static("Mode")
         yield Select(options=[], id="leaderboard-mode-select")
         yield Static("Category")

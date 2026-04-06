@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from textual.containers import Container
 from textual.widgets import Button, Input, Static
+from client.ui_theme import rich_text
 
 if TYPE_CHECKING:
     from client.app import ScriptureBaseballApp
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 class LoginPanel(Container):
     def compose(self):
-        yield Static("[bold cyan]Scripture Baseball[/bold cyan]", id="login-title")
+        yield Static(rich_text("Scripture Baseball", "heading", bold=True), id="login-title")
         yield Static("Username")
         yield Input(placeholder="Username", id="login-username")
         yield Static("Password")

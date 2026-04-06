@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from textual.containers import Container
 from textual.widgets import Button, Select, Static
+from client.ui_theme import rich_text
 
 if TYPE_CHECKING:
     from client.app import ScriptureBaseballApp
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 class SetupPanel(Container):
     def compose(self):
-        yield Static("[bold green]Choose Mode and Category[/bold green]", id="setup-title")
+        yield Static(rich_text("Choose Mode and Category", "title", bold=True), id="setup-title")
         yield Static("Mode")
         yield Select(options=[], id="mode-select")
         yield Static("Category")

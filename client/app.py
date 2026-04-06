@@ -14,6 +14,7 @@ from client.screens.login import LoginPanel
 from client.screens.register import RegisterPanel
 from client.screens.results import ResultsPanel
 from client.screens.setup import SetupPanel
+from client.ui_theme import rich_text
 from shared.game import Game
 from shared.request_classes import VerseRequest
 from shared.response_classes import VerseResponse
@@ -217,10 +218,10 @@ class ScriptureBaseballApp(App):
 
     def next_round(self) -> None:
         if self.session.is_round_loading:
-            self.game_panel.set_feedback("[yellow]Selecting verse...[/yellow]")
+            self.game_panel.set_feedback(rich_text("Selecting verse...", "loading_state"))
             return
         if not self.session.round_submitted:
-            self.game_panel.set_feedback("[red]Submit an answer before continuing.[/red]")
+            self.game_panel.set_feedback(rich_text("Submit an answer before continuing.", "feedback_error"))
             return
         if self.game.is_game_over():
             self._finish_game()
@@ -229,7 +230,7 @@ class ScriptureBaseballApp(App):
 
     def handle_round_action(self, answer_text: str) -> None:
         if self.session.is_round_loading:
-            self.game_panel.set_feedback("[yellow]Selecting verse...[/yellow]")
+            self.game_panel.set_feedback(rich_text("Selecting verse...", "loading_state"))
             return
         if self.session.round_submitted:
             self.next_round()
@@ -238,13 +239,13 @@ class ScriptureBaseballApp(App):
 
     def request_hint(self) -> None:
         if self.session.is_round_loading:
-            self.game_panel.set_feedback("[yellow]Selecting verse...[/yellow]")
+            self.game_panel.set_feedback(rich_text("Selecting verse...", "loading_state"))
             return
         if self.session.round_submitted:
             if self.game.is_game_over():
-                self.game_panel.set_feedback("[red]Game is complete. Press End Game to view results.[/red]")
+                self.game_panel.set_feedback(rich_text("Game is complete. Press End Game to view results.", "feedback_error"))
             else:
-                self.game_panel.set_feedback("[red]Round complete. Start the next round or end the game.[/red]")
+                self.game_panel.set_feedback(rich_text("Round complete. Start the next round or end the game.", "feedback_error"))
             return
         try:
             hint_payload = self.game.get_hint()
@@ -259,14 +260,14 @@ class ScriptureBaseballApp(App):
 
     def submit_answer(self, answer_text: str) -> None:
         if not answer_text:
-            self.game_panel.set_feedback("[red]Enter an answer before submitting.[/red]")
+            self.game_panel.set_feedback(rich_text("Enter an answer before submitting.", "feedback_error"))
             return
 
         if self.session.round_submitted:
             if self.game.is_game_over():
-                self.game_panel.set_feedback("[red]Game is complete. Press End Game to view results.[/red]")
+                self.game_panel.set_feedback(rich_text("Game is complete. Press End Game to view results.", "feedback_error"))
             else:
-                self.game_panel.set_feedback("[red]Round complete. Start the next round or end the game.[/red]")
+                self.game_panel.set_feedback(rich_text("Round complete. Start the next round or end the game.", "feedback_error"))
             return
 
         try:
@@ -320,14 +321,14 @@ class ScriptureBaseballApp(App):
         self.session.hint_lines = []
         self.session.hint_target_index = None
         self.session.round_submitted = False
-        self.session.feedback = "[yellow]Selecting verse...[/yellow]"
+        self.session.feedback = rich_text("Selecting verse...", "loading_state")
         self.session.is_round_loading = True
         self.session.round_request_id += 1
         request_id = self.session.round_request_id
 
         self._show_only("game")
         self.game_panel.set_hint([], None)
-        self.game_panel.set_prompt("[dim]Selecting verse...[/dim]")
+        self.game_panel.set_prompt(rich_text("Selecting verse...", "supporting_text", dim=True))
         self._refresh_game_panel()
         self.game_panel.clear_answer()
         self.game_panel.set_feedback(self.session.feedback)
@@ -365,8 +366,8 @@ class ScriptureBaseballApp(App):
             return
 
         self.session.is_round_loading = False
-        self.session.feedback = f"[red]Unable to load verse: {error_message}[/red]"
-        self.game_panel.set_prompt("[dim]Verse unavailable[/dim]")
+        self.session.feedback = rich_text(f"Unable to load verse: {error_message}", "feedback_error")
+        self.game_panel.set_prompt(rich_text("Verse unavailable", "supporting_text", dim=True))
         self.game_panel.set_feedback(self.session.feedback)
         self._refresh_game_panel()
 
@@ -516,17 +517,19 @@ class ScriptureBaseballApp(App):
 
         notes_text = ""
         if len(context_notes) > 0:
-            notes_text = " [dim](" + "; ".join(context_notes) + ")[/dim]"
+            notes_text = " " + rich_text("(" + "; ".join(context_notes) + ")", "supporting_text", dim=True)
 
         if closeness.get("is_exact"):
+            success_text = rich_text("Great guess!", "feedback_success")
             return (
-                f"[green]Great guess![/green] Correct answer: [bold]{correct_answer}[/bold]. "
+                f"{success_text} Correct answer: [bold]{correct_answer}[/bold]. "
                 f"You earned +{points} points this round.{notes_text}"
             )
 
         distance_phrase = self._format_distance_phrase(closeness)
+        warning_text = rich_text("Close, but not exact.", "feedback_warning")
         return (
-            f"[yellow]Close, but not exact.[/yellow] Correct answer: [bold]{correct_answer}[/bold]. "
+            f"{warning_text} Correct answer: [bold]{correct_answer}[/bold]. "
             f"You were {distance_phrase}. You earned +{points} points this round.{notes_text}"
         )
 
