@@ -121,12 +121,11 @@ class ScriptureBaseballApp(App):
         self._start_round()
 
     def start_new_game(self) -> None:
-        if self.session.auth_token is None:
+        if self.session.auth_token is None or self.session.selected_mode_id is None or self.session.selected_category_id is None:
             self._show_only("login")
             return
         self.game = Game()
-        self._refresh_setup_options()
-        self._enter_setup()
+        self.start_game_flow(self.session.selected_mode_id, self.session.selected_category_id)
 
     def show_login(self) -> None:
         self.register_panel.set_status("")
@@ -181,6 +180,12 @@ class ScriptureBaseballApp(App):
             return
         self._start_round()
 
+    def handle_round_action(self, answer_text: str) -> None:
+        if self.session.round_submitted:
+            self.next_round()
+            return
+        self.submit_answer(answer_text)
+
     def request_hint(self) -> None:
         if self.session.round_submitted:
             self.game_panel.set_feedback("This round is complete. Press Next Round to continue.")
@@ -222,13 +227,13 @@ class ScriptureBaseballApp(App):
         self._refresh_game_panel()
 
         if self.game.is_game_over():
-            self.game_panel.set_controls(False, False, False)
             self._finish_game()
             return
 
-        self.game_panel.set_controls(False, False, True)
-
     def return_to_setup(self) -> None:
+        self._enter_setup()
+
+    def return_to_menu(self) -> None:
         if self.session.auth_token is None:
             self._show_only("login")
             return
@@ -250,7 +255,7 @@ class ScriptureBaseballApp(App):
         self._refresh_game_panel()
         self.game_panel.clear_answer()
         self.game_panel.set_feedback("")
-        self.game_panel.set_controls(True, True, False)
+        self._update_round_controls()
 
     def _finish_game(self) -> None:
         self.session.final_score = self.game.get_final_score()
@@ -301,11 +306,23 @@ class ScriptureBaseballApp(App):
             state["lives_remaining"],
             round_progress,
             state["rounds_remaining"],
+            state["mode_id"] == "endless",
         )
+        self._update_round_controls()
+
+    def _update_round_controls(self) -> None:
+        if self.session.round_submitted:
+            self.game_panel.set_controls(
+                "Next Round",
+                not self.game.is_game_over(),
+                False,
+            )
+            return
+
         self.game_panel.set_controls(
-            not self.session.round_submitted,
-            (not self.session.round_submitted) and self.game.get_hints_remaining() != 0,
-            self.session.round_submitted and (not self.game.is_game_over()),
+            "Submit Answer",
+            True,
+            self.game.get_hints_remaining() != 0,
         )
 
     def _score_answer(self, closeness: dict) -> int:

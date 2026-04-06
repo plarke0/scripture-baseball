@@ -15,7 +15,7 @@ class ResultsPanel(Container):
         yield Static("", id="final-score")
         yield Static("", id="results-message")
         yield Button("Play Again", id="play-again-button")
-        yield Button("Logout", id="results-logout-button")
+        yield Button("Back to Menu", id="results-menu-button")
 
     def set_results(self, final_score: int, message: str) -> None:
         self.query_one("#final-score", Static).update(f"Final Score: {final_score}")
@@ -25,5 +25,5 @@ class ResultsPanel(Container):
         app = cast("ScriptureBaseballApp", self.app)
         if event.button.id == "play-again-button":
             app.start_new_game()
-        elif event.button.id == "results-logout-button":
-            app.handle_logout()
+        elif event.button.id == "results-menu-button":
+            app.return_to_menu()

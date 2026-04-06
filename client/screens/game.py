@@ -22,10 +22,9 @@ class GamePanel(Container):
         yield Static("", id="hint-output")
         yield Static("", id="feedback-output")
         yield Input(placeholder="Book Chapter:Verse", id="answer-input")
-        yield Button("Submit Answer", id="submit-answer-button")
+        yield Button("Submit Answer", id="round-action-button")
         yield Button("Get Hint", id="hint-button")
-        yield Button("Next Round", id="next-round-button")
-        yield Button("Back to Setup", id="back-to-setup-button")
+        yield Button("Back to Menu", id="back-to-menu-button")
 
     def set_round_state(
         self,
@@ -34,12 +33,14 @@ class GamePanel(Container):
         lives_remaining: int | None,
         round_progress: str,
         rounds_remaining: int | None,
+        show_lives: bool,
     ) -> None:
         self.query_one("#round-info", Static).update(f"[bold]Round:[/bold] {round_progress}")
         self.query_one("#score-info", Static).update(f"[bold yellow]Points:[/bold yellow] {score}")
-        self.query_one("#lives-info", Static).update(
-            f"[bold red]Lives:[/bold red] {lives_remaining if lives_remaining is not None else '--'}"
-        )
+        lives_text = ""
+        if show_lives:
+            lives_text = f"[bold red]Lives:[/bold red] {lives_remaining if lives_remaining is not None else '--'}"
+        self.query_one("#lives-info", Static).update(lives_text)
         if rounds_remaining is not None:
             self.query_one("#feedback-output", Static).update(
                 f"[dim]Rounds remaining: {rounds_remaining}[/dim]"
@@ -68,33 +69,27 @@ class GamePanel(Container):
     def clear_answer(self) -> None:
         self.query_one("#answer-input", Input).value = ""
 
-    def set_controls(self, submit_enabled: bool, hint_enabled: bool, next_enabled: bool) -> None:
-        submit_button = self.query_one("#submit-answer-button", Button)
-        next_button = self.query_one("#next-round-button", Button)
+    def set_controls(self, action_label: str, action_enabled: bool, hint_enabled: bool) -> None:
+        action_button = self.query_one("#round-action-button", Button)
         hint_button = self.query_one("#hint-button", Button)
 
-        submit_button.disabled = not submit_enabled
-        submit_button.display = submit_enabled
-
-        next_button.disabled = not next_enabled
-        next_button.display = next_enabled
+        action_button.label = action_label
+        action_button.disabled = not action_enabled
 
         hint_button.disabled = not hint_enabled
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         app = cast("ScriptureBaseballApp", self.app)
-        if event.button.id == "submit-answer-button":
+        if event.button.id == "round-action-button":
             answer_text = self.query_one("#answer-input", Input).value.strip()
-            app.submit_answer(answer_text)
+            app.handle_round_action(answer_text)
         elif event.button.id == "hint-button":
             app.request_hint()
-        elif event.button.id == "next-round-button":
-            app.next_round()
-        elif event.button.id == "back-to-setup-button":
-            app.return_to_setup()
+        elif event.button.id == "back-to-menu-button":
+            app.return_to_menu()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "answer-input":
             return
         app = cast("ScriptureBaseballApp", self.app)
-        app.submit_answer(event.value.strip())
+        app.handle_round_action(event.value.strip())
