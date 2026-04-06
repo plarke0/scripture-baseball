@@ -217,34 +217,96 @@ class Game:
 		guess_chapter: int,
 		guess_verse: int,
 	) -> dict[str, Any]:
-		if self._selected_verse is None or self._selected_book_name is None:
+		if self._selected_verse is None or self._selected_book_name is None or self._selected_volume_id is None:
 			raise ValueError("No active selected verse for this round")
 		if self._selected_verse.volume != volume_id:
 			raise ValueError("Selected verse is not in the requested volume")
 
-		volume: Volume = self._get_volume(volume_id)
-		canonical_guess_book_name: str = volume.resolve_book_name(guess_book_name)
-		volume.validate_verse_reference(canonical_guess_book_name, guess_chapter, guess_verse)
+		guess_volume_id, canonical_guess_book_name = self._resolve_guess_in_selected_category(
+			guess_book_name,
+			guess_chapter,
+			guess_verse,
+		)
 
+		target_volume_id: str = self._selected_volume_id
 		target_book_name: str = self._selected_book_name
 		target_chapter: int = self._selected_verse.chapter
 		target_verse: int = self._selected_verse.verse
 
-		if canonical_guess_book_name == target_book_name and guess_chapter == target_chapter and guess_verse == target_verse:
+		if (
+			guess_volume_id == target_volume_id
+			and canonical_guess_book_name == target_book_name
+			and guess_chapter == target_chapter
+			and guess_verse == target_verse
+		):
 			return {"is_exact": True, "unit": "verse", "offset": 0, "absolute_offset": 0}
 
-		if canonical_guess_book_name == target_book_name and guess_chapter == target_chapter:
+		if guess_volume_id == target_volume_id and canonical_guess_book_name == target_book_name and guess_chapter == target_chapter:
 			offset: int = target_verse - guess_verse
 			return {"is_exact": False, "unit": "verse", "offset": offset, "absolute_offset": abs(offset)}
 
-		if canonical_guess_book_name == target_book_name:
+		if guess_volume_id == target_volume_id and canonical_guess_book_name == target_book_name:
 			offset = target_chapter - guess_chapter
 			return {"is_exact": False, "unit": "chapter", "offset": offset, "absolute_offset": abs(offset)}
 
-		target_book_index: int = volume.get_book_index(target_book_name)
-		guess_book_index: int = volume.get_book_index(canonical_guess_book_name)
+		category_book_sequence: list[tuple[str, str]] = self._get_selected_category_book_sequence()
+		target_book_index: int = self._find_category_book_index(
+			category_book_sequence,
+			target_volume_id,
+			target_book_name,
+		)
+		guess_book_index: int = self._find_category_book_index(
+			category_book_sequence,
+			guess_volume_id,
+			canonical_guess_book_name,
+		)
 		offset = target_book_index - guess_book_index
 		return {"is_exact": False, "unit": "book", "offset": offset, "absolute_offset": abs(offset)}
+
+	def _resolve_guess_in_selected_category(self, guess_book_name: str, guess_chapter: int, guess_verse: int) -> tuple[str, str]:
+		category: dict[str, Any] = self._require_selected_category()
+		for volume_entry in category["volumes"]:
+			volume_id: str = volume_entry["id"]
+			volume: Volume = self._get_volume(volume_id)
+
+			try:
+				canonical_book_name: str = volume.resolve_book_name(guess_book_name)
+			except ValueError:
+				continue
+
+			book_ids: list[str] = volume_entry["book_ids"] if volume_entry["book_ids"] is not None else volume.get_all_book_ids()
+			canonical_book_id: str = volume.get_book_id(canonical_book_name)
+			if canonical_book_id not in book_ids:
+				continue
+
+			volume.validate_verse_reference(canonical_book_name, guess_chapter, guess_verse)
+			return (volume_id, canonical_book_name)
+
+		raise ValueError(f"Unknown book in selected category: {guess_book_name.strip()}")
+
+	def _get_selected_category_book_sequence(self) -> list[tuple[str, str]]:
+		category: dict[str, Any] = self._require_selected_category()
+		ordered_books: list[tuple[str, str]] = []
+
+		for volume_entry in category["volumes"]:
+			volume_id: str = volume_entry["id"]
+			volume: Volume = self._get_volume(volume_id)
+			book_ids: list[str] = volume_entry["book_ids"] if volume_entry["book_ids"] is not None else volume.get_all_book_ids()
+			for book_id in book_ids:
+				ordered_books.append((volume_id, volume.get_book_name(book_id)))
+
+		return ordered_books
+
+	@staticmethod
+	def _find_category_book_index(
+		category_book_sequence: list[tuple[str, str]],
+		volume_id: str,
+		book_name: str,
+	) -> int:
+		for index, (candidate_volume_id, candidate_book_name) in enumerate(category_book_sequence):
+			if candidate_volume_id == volume_id and candidate_book_name == book_name:
+				return index
+		raise ValueError(f"Book not found in selected category order: {volume_id}:{book_name}")
 
 	def get_correct_answer(self) -> str:
 		if self._selected_verse is None or self._selected_book_name is None:

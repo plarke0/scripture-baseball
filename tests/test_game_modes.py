@@ -58,6 +58,24 @@ class TestGameModes(unittest.TestCase):
 		self.assertEqual(game.add_score(250), 1250)
 		self.assertEqual(game.get_final_score(), 1250)
 
+	def test_guess_from_different_volume_in_category_is_supported(self) -> None:
+		game = Game()
+		game.select_mode("finite_5")
+		game.select_category("bible")
+		game.start_game()
+		selected = game.start_round()
+
+		if selected.volume == "newtestament":
+			guess = "Genesis 1:1"
+		elif selected.volume == "oldtestament":
+			guess = "Matthew 1:1"
+		else:
+			raise AssertionError(f"Unexpected volume for bible category: {selected.volume}")
+
+		result = game.submit_answer(guess)
+		self.assertIn("closeness", result)
+		self.assertEqual(result["closeness"]["unit"], "book")
+
 
 if __name__ == "__main__":
 	unittest.main()
