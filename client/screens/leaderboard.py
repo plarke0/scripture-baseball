@@ -25,6 +25,12 @@ class LeaderboardPanel(Container):
         if categories:
             category_select.value = categories[0]["id"]
 
+    def get_selected_category_id(self) -> str | None:
+        category_id = self.query_one("#leaderboard-category-select", Select).value
+        if category_id is None:
+            return None
+        return str(category_id)
+
     def set_status(self, message: str) -> None:
         self.query_one("#leaderboard-status", Static).update(message)
 
@@ -37,10 +43,18 @@ class LeaderboardPanel(Container):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         app = cast("ScriptureBaseballApp", self.app)
         if event.button.id == "refresh-leaderboard-button":
-            category_id = self.query_one("#leaderboard-category-select", Select).value
+            category_id = self.get_selected_category_id()
             if category_id is None:
                 self.set_status("Select a category first.")
                 return
-            app.refresh_leaderboard(str(category_id))
+            app.refresh_leaderboard(category_id)
         elif event.button.id == "leaderboard-back-button":
             app.return_to_setup()
+
+    def on_select_changed(self, event: Select.Changed) -> None:
+        if event.select.id != "leaderboard-category-select":
+            return
+        if event.value is Select.BLANK:
+            return
+        app = cast("ScriptureBaseballApp", self.app)
+        app.refresh_leaderboard(str(event.value))

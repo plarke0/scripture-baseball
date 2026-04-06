@@ -17,7 +17,7 @@ class ResultsPanel(Container):
         yield Button("Play Again", id="play-again-button")
         yield Button("Logout", id="results-logout-button")
 
-    def set_results(self, final_score: float, message: str) -> None:
+    def set_results(self, final_score: int, message: str) -> None:
         self.query_one("#final-score", Static).update(f"Final Score: {final_score}")
         self.query_one("#results-message", Static).update(message)
 

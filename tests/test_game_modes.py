@@ -45,17 +45,18 @@ class TestGameModes(unittest.TestCase):
 		game.set_chapter_data([f"verse {index}" for index in range(1, 200)])
 
 		first_hint = game.get_hint()
-		self.assertEqual(len(first_hint), 3)
+		self.assertEqual(len(first_hint["lines"]), 3)
+		self.assertIn("target_index", first_hint)
 		self.assertEqual(game.get_hints_remaining(), 0)
 		with self.assertRaises(ValueError):
 			game.get_hint()
 
 	def test_final_score_accumulates(self) -> None:
 		game = Game()
-		self.assertEqual(game.get_final_score(), 0.0)
-		self.assertEqual(game.add_score(1), 1.0)
-		self.assertEqual(game.add_score(0.5), 1.5)
-		self.assertEqual(game.get_final_score(), 1.5)
+		self.assertEqual(game.get_final_score(), 0)
+		self.assertEqual(game.add_score(1000), 1000)
+		self.assertEqual(game.add_score(250), 1250)
+		self.assertEqual(game.get_final_score(), 1250)
 
 
 if __name__ == "__main__":

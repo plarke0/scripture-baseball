@@ -63,6 +63,13 @@ class Volume:
 			total_verses += self._book_to_total_verses[book_name]
 		return total_verses
 
+	def get_total_chapters_for_book_ids(self, book_ids: list[str]) -> int:
+		book_names: list[str] = self._normalize_book_ids(book_ids)
+		total_chapters: int = 0
+		for book_name in book_names:
+			total_chapters += len(self._book_to_chapters[book_name])
+		return total_chapters
+
 	def get_random_verse_from_book_ids(self, book_ids: list[str]) -> VerseRequest:
 		book_names: list[str] = self._normalize_book_ids(book_ids)
 		total_verses: int = self.get_total_verses_for_book_ids(book_ids)

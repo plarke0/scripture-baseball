@@ -29,6 +29,7 @@ class Game:
 		self._volumes_by_id: dict[str, Volume] = self._load_active_volumes()
 		self._modes_by_id: dict[str, dict[str, Any]] = {}
 		self._categories_by_id: dict[str, dict[str, Any]] = {}
+		self._scoring_config: dict[str, Any] = {}
 		self._load_game_settings()
 
 		self._selected_mode_id: str | None = None
@@ -38,7 +39,7 @@ class Game:
 		self._game_started: bool = False
 		self._game_over: bool = False
 
-		self._score: float = 0.0
+		self._score: int = 0
 		self._round_number: int = 0
 		self._rounds_remaining: int | None = None
 		self._lives_remaining: int | None = None
@@ -84,7 +85,7 @@ class Game:
 		mode: dict[str, Any] = self._require_selected_mode()
 		self._require_selected_category()
 
-		self._score = 0.0
+		self._score = 0
 		self._round_number = 0
 		self._game_started = True
 		self._game_over = False
@@ -171,14 +172,43 @@ class Game:
 			"game_over": self._game_over,
 		}
 
-	def add_score(self, points: float) -> float:
-		if not isinstance(points, (int, float)):
-			raise ValueError("points must be numeric")
-		self._score += float(points)
+	def add_score(self, points: int) -> int:
+		if not isinstance(points, int):
+			raise ValueError("points must be an integer")
+		self._score += points
 		return self._score
 
-	def get_final_score(self) -> float:
+	def get_final_score(self) -> int:
 		return self._score
+
+	def get_hints_used_this_round(self) -> int:
+		return self._hints_used_this_round
+
+	def get_scoring_config(self) -> dict[str, Any]:
+		return dict(self._scoring_config)
+
+	def get_selected_category_metrics(self) -> dict[str, int]:
+		category: dict[str, Any] = self._require_selected_category()
+		book_count: int = 0
+		total_chapters: int = 0
+		total_verses: int = 0
+
+		for volume_entry in category["volumes"]:
+			volume_id: str = volume_entry["id"]
+			volume: Volume = self._get_volume(volume_id)
+			book_ids: list[str] = volume.get_all_book_ids()
+			if volume_entry.get("book_ids") is not None:
+				book_ids = list(volume_entry["book_ids"])
+
+			book_count += len(book_ids)
+			total_chapters += volume.get_total_chapters_for_book_ids(book_ids)
+			total_verses += volume.get_total_verses_for_book_ids(book_ids)
+
+		return {
+			"book_count": book_count,
+			"chapter_count": total_chapters,
+			"verse_count": total_verses,
+		}
 
 	def get_answer_closeness(
 		self,
@@ -221,7 +251,7 @@ class Game:
 			raise ValueError("No active selected verse for this round")
 		return f"{self._selected_book_name} {self._selected_verse.chapter}:{self._selected_verse.verse}"
 
-	def get_hint(self) -> list[str]:
+	def get_hint(self) -> dict[str, Any]:
 		if self._selected_verse is None:
 			raise ValueError("No active selected verse for this round")
 		if self._chapter_data is None:
@@ -251,12 +281,12 @@ class Game:
 			self._hints_used_this_round += 1
 
 		if len(verses) <= 3:
-			return verses
+			return {"lines": verses, "target_index": target_index}
 		if target_index == 0:
-			return verses[0:3]
+			return {"lines": verses[0:3], "target_index": 0}
 		if target_index == len(verses) - 1:
-			return verses[len(verses) - 3:len(verses)]
-		return verses[target_index - 1:target_index + 2]
+			return {"lines": verses[len(verses) - 3:len(verses)], "target_index": 2}
+		return {"lines": verses[target_index - 1:target_index + 2], "target_index": 1}
 
 	def get_round_state(self) -> dict[str, Any]:
 		return {
@@ -365,13 +395,55 @@ class Game:
 
 		modes = settings.get("modes")
 		categories = settings.get("categories")
+		scoring = settings.get("scoring")
 		if not isinstance(modes, list) or len(modes) == 0:
 			raise ValueError("game_settings.json must contain a non-empty 'modes' list")
 		if not isinstance(categories, list) or len(categories) == 0:
 			raise ValueError("game_settings.json must contain a non-empty 'categories' list")
+		if not isinstance(scoring, dict):
+			raise ValueError("game_settings.json must contain a 'scoring' object")
 
 		self._modes_by_id = self._parse_modes(modes)
 		self._categories_by_id = self._parse_categories(categories)
+		self._scoring_config = self._parse_scoring(scoring)
+
+	def _parse_scoring(self, scoring: dict[str, Any]) -> dict[str, Any]:
+		max_round_points = scoring.get("max_round_points")
+		finite_hint_multiplier = scoring.get("finite_hint_multiplier")
+		tiers = scoring.get("tiers")
+
+		if not isinstance(max_round_points, int) or max_round_points <= 0:
+			raise ValueError("scoring.max_round_points must be a positive integer")
+		if not isinstance(finite_hint_multiplier, (int, float)):
+			raise ValueError("scoring.finite_hint_multiplier must be numeric")
+		if not isinstance(tiers, dict):
+			raise ValueError("scoring.tiers must be an object")
+
+		parsed_tiers: dict[str, dict[str, int]] = {}
+		for unit in ["verse", "chapter", "book"]:
+			unit_tier = tiers.get(unit)
+			if not isinstance(unit_tier, dict):
+				raise ValueError(f"scoring.tiers.{unit} must be an object")
+			unit_min = unit_tier.get("min")
+			unit_max = unit_tier.get("max")
+			if not isinstance(unit_min, int) or not isinstance(unit_max, int):
+				raise ValueError(f"scoring.tiers.{unit} min/max must be integers")
+			if unit_min < 0 or unit_max < 0 or unit_min > unit_max:
+				raise ValueError(f"scoring.tiers.{unit} has invalid range")
+			parsed_tiers[unit] = {"min": unit_min, "max": unit_max}
+
+		if parsed_tiers["book"]["max"] >= parsed_tiers["chapter"]["min"]:
+			raise ValueError("book tier must be strictly below chapter tier")
+		if parsed_tiers["chapter"]["max"] >= parsed_tiers["verse"]["min"]:
+			raise ValueError("chapter tier must be strictly below verse tier")
+		if parsed_tiers["verse"]["max"] >= max_round_points:
+			raise ValueError("verse tier max must be below max_round_points")
+
+		return {
+			"max_round_points": max_round_points,
+			"finite_hint_multiplier": float(finite_hint_multiplier),
+			"tiers": parsed_tiers,
+		}
 
 	def _parse_modes(self, modes: list[Any]) -> dict[str, dict[str, Any]]:
 		parsed_modes: dict[str, dict[str, Any]] = {}
@@ -553,7 +625,7 @@ class Game:
 
 	def _reset_round_state(self, reset_score: bool = False) -> None:
 		if reset_score:
-			self._score = 0.0
+			self._score = 0
 		self._selected_verse = None
 		self._selected_book_name = None
 		self._selected_volume_id = None

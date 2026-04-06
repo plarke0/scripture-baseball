@@ -1,4 +1,13 @@
 {
+  "scoring": {
+    "max_round_points": 1000,
+    "finite_hint_multiplier": 0.5,
+    "tiers": {
+      "verse": { "min": 650, "max": 950 },
+      "chapter": { "min": 250, "max": 649 },
+      "book": { "min": 25, "max": 249 }
+    }
+  },
   "modes": [
     {
       "id": "endless",

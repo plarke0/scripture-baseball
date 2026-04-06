@@ -112,8 +112,10 @@ class ScriptureBaseballApp(App):
         self.game.select_category(category_id)
         self.game.start_game()
         self.session.current_round = 0
-        self.session.final_score = 0.0
+        self.session.final_score = 0
         self.session.hint_lines = []
+        self.session.hint_target_index = None
+        self.session.round_submitted = False
         self.session.feedback = ""
         self._show_only("game")
         self._start_round()
@@ -136,9 +138,12 @@ class ScriptureBaseballApp(App):
 
     def open_leaderboards(self) -> None:
         self.leaderboard_panel.load_categories(self.game.get_available_categories())
-        self.leaderboard_panel.set_status("")
-        self.leaderboard_panel.set_rows("Select a category and refresh.", [])
+        self.leaderboard_panel.set_status("Loading leaderboard...")
+        self.leaderboard_panel.set_rows("", [])
         self._show_only("leaderboard")
+        default_category_id = self.leaderboard_panel.get_selected_category_id()
+        if default_category_id is not None:
+            self.refresh_leaderboard(default_category_id)
 
     def refresh_leaderboard(self, category_id: str) -> None:
         if self.session.auth_token is None:
@@ -159,28 +164,39 @@ class ScriptureBaseballApp(App):
             f"[bold]Top Scores ({category_id})[/bold]\nYour Highscore: {my_score.highscore}",
             rows,
         )
-        self.leaderboard_panel.set_status("Leaderboard updated.")
+        self.leaderboard_panel.set_status("")
 
     def next_round(self) -> None:
+        if not self.session.round_submitted:
+            self.game_panel.set_feedback("Submit an answer before continuing to the next round.")
+            return
         if self.game.is_game_over():
             self._finish_game()
             return
         self._start_round()
 
     def request_hint(self) -> None:
+        if self.session.round_submitted:
+            self.game_panel.set_feedback("This round is complete. Press Next Round to continue.")
+            return
         try:
-            hint_lines = self.game.get_hint()
+            hint_payload = self.game.get_hint()
         except Exception as error:
             self.game_panel.set_feedback(str(error))
             return
 
-        self.session.hint_lines = hint_lines
-        self.game_panel.set_hint(hint_lines)
+        self.session.hint_lines = list(hint_payload["lines"])
+        self.session.hint_target_index = int(hint_payload["target_index"])
+        self.game_panel.set_hint(self.session.hint_lines, self.session.hint_target_index)
         self._refresh_game_panel()
 
     def submit_answer(self, answer_text: str) -> None:
         if not answer_text:
             self.game_panel.set_feedback("Enter an answer before submitting.")
+            return
+
+        if self.session.round_submitted:
+            self.game_panel.set_feedback("This round is complete. Press Next Round to continue.")
             return
 
         try:
@@ -190,17 +206,21 @@ class ScriptureBaseballApp(App):
             return
 
         points = self._score_answer(result["closeness"])
-        if points > 0:
-            self.game.add_score(points)
+        self.game.add_score(points)
 
         self.session.final_score = self.game.get_final_score()
         self.session.feedback = self._format_submission_feedback(result["closeness"], points)
         self.game_panel.set_feedback(self.session.feedback)
         self.game_panel.clear_answer()
+        self.session.round_submitted = True
         self._refresh_game_panel()
 
         if self.game.is_game_over():
+            self.game_panel.set_controls(False, False, False)
             self._finish_game()
+            return
+
+        self.game_panel.set_controls(False, False, True)
 
     def return_to_setup(self) -> None:
         if self.session.auth_token is None:
@@ -215,9 +235,11 @@ class ScriptureBaseballApp(App):
         verse_response = self.facade.get_verse(self.session.auth_token or "", selected)
         self.game.set_chapter_data(verse_response.chapter)
         self.session.hint_lines = []
+        self.session.hint_target_index = None
+        self.session.round_submitted = False
         self.session.feedback = ""
         self._show_only("game")
-        self.game_panel.set_hint([])
+        self.game_panel.set_hint([], None)
         self.game_panel.set_prompt(verse_response.verse)
         self._refresh_game_panel()
         self.game_panel.clear_answer()
@@ -270,29 +292,63 @@ class ScriptureBaseballApp(App):
             round_progress,
             state["rounds_remaining"],
         )
-        self.game_panel.set_controls(True, self.game.get_hints_remaining() != 0, not self.game.is_game_over())
+        self.game_panel.set_controls(
+            not self.session.round_submitted,
+            (not self.session.round_submitted) and self.game.get_hints_remaining() != 0,
+            self.session.round_submitted and (not self.game.is_game_over()),
+        )
 
-    def _score_answer(self, closeness: dict) -> float:
-        if not closeness.get("is_exact"):
-            return 0.0
-        if self.session.selected_mode_id == "endless":
-            return 1.0
-        return 0.5
+    def _score_answer(self, closeness: dict) -> int:
+        scoring = self.game.get_scoring_config()
+        max_round_points: int = int(scoring["max_round_points"])
+        tiers: dict = scoring["tiers"]
 
-    def _format_submission_feedback(self, closeness: dict, points: float) -> str:
+        if closeness.get("is_exact"):
+            base_points = max_round_points
+        else:
+            unit = str(closeness.get("unit", "book"))
+            tier = tiers.get(unit)
+            if not isinstance(tier, dict):
+                return 0
+
+            category_metrics = self.game.get_selected_category_metrics()
+            max_offsets = {
+                "verse": max(category_metrics["verse_count"] - 1, 1),
+                "chapter": max(category_metrics["chapter_count"] - 1, 1),
+                "book": max(category_metrics["book_count"] - 1, 1),
+            }
+            absolute_offset = int(closeness.get("absolute_offset", 0))
+            normalized = min(max(absolute_offset / max_offsets[unit], 0.0), 1.0)
+
+            tier_min = int(tier["min"])
+            tier_max = int(tier["max"])
+            span = tier_max - tier_min
+            base_points = int(round(tier_max - (span * normalized)))
+
+        if self.session.selected_mode_id != "endless" and self.game.get_hints_used_this_round() > 0:
+            multiplier = float(scoring["finite_hint_multiplier"])
+            base_points = int(round(base_points * multiplier))
+
+        return max(0, min(base_points, max_round_points))
+
+    def _format_submission_feedback(self, closeness: dict, points: int) -> str:
         unit = closeness.get("unit")
         offset = closeness.get("offset")
         correct_answer = self.game.get_correct_answer()
-        delta_prefix = "+" if points >= 0 else ""
+        running_total = self.game.get_final_score()
+        penalty_note = ""
+        if self.session.selected_mode_id != "endless" and self.game.get_hints_used_this_round() > 0:
+            penalty_note = " [dim](finite hint penalty applied)[/dim]"
+
         if closeness.get("is_exact"):
             return (
-                f"[green]Exact![/green] Correct answer: [bold]{correct_answer}[/bold] "
-                f"({delta_prefix}{points} points, total {self.game.get_final_score()})."
+                f"[green]Exact![/green] Correct: [bold]{correct_answer}[/bold]. "
+                f"Round points: +{points}. Total: {running_total}.{penalty_note}"
             )
         return (
-            f"[yellow]Not exact.[/yellow] Correct answer: [bold]{correct_answer}[/bold]. "
-            f"Closest unit: {unit} (offset {offset}). "
-            f"Points change: {delta_prefix}{points}. Total: {self.game.get_final_score()}."
+            f"[yellow]Not exact.[/yellow] Correct: [bold]{correct_answer}[/bold]. "
+            f"Closest miss: {unit} (offset {offset}). "
+            f"Round points: +{points}. Total: {running_total}.{penalty_note}"
         )
 
     def _show_only(self, visible_panel: str) -> None:

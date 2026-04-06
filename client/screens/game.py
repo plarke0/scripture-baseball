@@ -30,7 +30,7 @@ class GamePanel(Container):
     def set_round_state(
         self,
         round_number: int,
-        score: float,
+        score: int,
         lives_remaining: int | None,
         round_progress: str,
         rounds_remaining: int | None,
@@ -48,11 +48,19 @@ class GamePanel(Container):
     def set_prompt(self, prompt_text: str) -> None:
         self.query_one("#prompt-info", Static).update(f"[bold cyan]{prompt_text}[/bold cyan]")
 
-    def set_hint(self, hint_lines: list[str]) -> None:
+    def set_hint(self, hint_lines: list[str], target_index: int | None = None) -> None:
         if len(hint_lines) == 0:
             self.query_one("#hint-output", Static).update("[dim]No hints used yet.[/dim]")
             return
-        self.query_one("#hint-output", Static).update("\n".join(f"[magenta]{line}[/magenta]" for line in hint_lines))
+
+        colored_lines: list[str] = []
+        for index, line in enumerate(hint_lines):
+            if target_index is not None and index == target_index:
+                colored_lines.append(f"[bold cyan]{line}[/bold cyan]")
+            else:
+                colored_lines.append(f"[magenta]{line}[/magenta]")
+
+        self.query_one("#hint-output", Static).update("\n".join(colored_lines))
 
     def set_feedback(self, feedback_text: str) -> None:
         self.query_one("#feedback-output", Static).update(feedback_text)
@@ -61,9 +69,17 @@ class GamePanel(Container):
         self.query_one("#answer-input", Input).value = ""
 
     def set_controls(self, submit_enabled: bool, hint_enabled: bool, next_enabled: bool) -> None:
-        self.query_one("#submit-answer-button", Button).disabled = not submit_enabled
-        self.query_one("#hint-button", Button).disabled = not hint_enabled
-        self.query_one("#next-round-button", Button).disabled = not next_enabled
+        submit_button = self.query_one("#submit-answer-button", Button)
+        next_button = self.query_one("#next-round-button", Button)
+        hint_button = self.query_one("#hint-button", Button)
+
+        submit_button.disabled = not submit_enabled
+        submit_button.display = submit_enabled
+
+        next_button.disabled = not next_enabled
+        next_button.display = next_enabled
+
+        hint_button.disabled = not hint_enabled
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         app = cast("ScriptureBaseballApp", self.app)
