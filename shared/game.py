@@ -193,27 +193,33 @@ class Game:
 			raise ValueError("Selected verse is not in the requested volume")
 
 		volume: Volume = self._get_volume(volume_id)
-		volume.validate_verse_reference(guess_book_name, guess_chapter, guess_verse)
+		canonical_guess_book_name: str = volume.resolve_book_name(guess_book_name)
+		volume.validate_verse_reference(canonical_guess_book_name, guess_chapter, guess_verse)
 
 		target_book_name: str = self._selected_book_name
 		target_chapter: int = self._selected_verse.chapter
 		target_verse: int = self._selected_verse.verse
 
-		if guess_book_name == target_book_name and guess_chapter == target_chapter and guess_verse == target_verse:
+		if canonical_guess_book_name == target_book_name and guess_chapter == target_chapter and guess_verse == target_verse:
 			return {"is_exact": True, "unit": "verse", "offset": 0, "absolute_offset": 0}
 
-		if guess_book_name == target_book_name and guess_chapter == target_chapter:
+		if canonical_guess_book_name == target_book_name and guess_chapter == target_chapter:
 			offset: int = target_verse - guess_verse
 			return {"is_exact": False, "unit": "verse", "offset": offset, "absolute_offset": abs(offset)}
 
-		if guess_book_name == target_book_name:
+		if canonical_guess_book_name == target_book_name:
 			offset = target_chapter - guess_chapter
 			return {"is_exact": False, "unit": "chapter", "offset": offset, "absolute_offset": abs(offset)}
 
 		target_book_index: int = volume.get_book_index(target_book_name)
-		guess_book_index: int = volume.get_book_index(guess_book_name)
+		guess_book_index: int = volume.get_book_index(canonical_guess_book_name)
 		offset = target_book_index - guess_book_index
 		return {"is_exact": False, "unit": "book", "offset": offset, "absolute_offset": abs(offset)}
+
+	def get_correct_answer(self) -> str:
+		if self._selected_verse is None or self._selected_book_name is None:
+			raise ValueError("No active selected verse for this round")
+		return f"{self._selected_book_name} {self._selected_verse.chapter}:{self._selected_verse.verse}"
 
 	def get_hint(self) -> list[str]:
 		if self._selected_verse is None:

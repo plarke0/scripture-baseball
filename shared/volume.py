@@ -38,6 +38,17 @@ class Volume:
 		normalized_book: str = self._validate_book(book_name)
 		return self._book_to_index[normalized_book]
 
+	def resolve_book_name(self, book_name: str) -> str:
+		if not isinstance(book_name, str) or not book_name.strip():
+			raise ValueError("Book must be a non-empty string")
+
+		normalized_input: str = book_name.strip().lower()
+		for canonical_book_name in self._book_order:
+			if canonical_book_name.lower() == normalized_input:
+				return canonical_book_name
+
+		raise ValueError(f"Unknown book: {book_name.strip()}")
+
 	def get_book_index_by_id(self, book_id: str) -> int:
 		book_name: str = self.get_book_name(book_id)
 		return self._book_to_index[book_name]
