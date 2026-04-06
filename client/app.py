@@ -5,6 +5,7 @@ from textual.widgets import Footer, Header
 
 from client.facade_server import FacadeServer
 from client.session_state import ClientSessionState
+from client.screens.confirm_exit import ConfirmExitPanel
 from client.screens.game import GamePanel
 from client.screens.leaderboard import LeaderboardPanel
 from client.screens.login import LoginPanel
@@ -20,7 +21,7 @@ class ScriptureBaseballApp(App):
         align: center middle;
     }
 
-    LoginPanel, RegisterPanel, SetupPanel, GamePanel, ResultsPanel, LeaderboardPanel {
+    LoginPanel, RegisterPanel, SetupPanel, GamePanel, ConfirmExitPanel, ResultsPanel, LeaderboardPanel {
         width: 80%;
         max-width: 100;
         margin: 1 2;
@@ -52,6 +53,7 @@ class ScriptureBaseballApp(App):
         self.register_panel = RegisterPanel(id="register-panel")
         self.setup_panel = SetupPanel(id="setup-panel")
         self.game_panel = GamePanel(id="game-panel")
+        self.confirm_exit_panel = ConfirmExitPanel(id="confirm-exit-panel")
         self.results_panel = ResultsPanel(id="results-panel")
         self.leaderboard_panel = LeaderboardPanel(id="leaderboard-panel")
 
@@ -61,6 +63,7 @@ class ScriptureBaseballApp(App):
         yield self.register_panel
         yield self.setup_panel
         yield self.game_panel
+        yield self.confirm_exit_panel
         yield self.results_panel
         yield self.leaderboard_panel
         yield Footer()
@@ -116,7 +119,6 @@ class ScriptureBaseballApp(App):
         self.session.hint_lines = []
         self.session.hint_target_index = None
         self.session.round_submitted = False
-        self.session.pending_end_game_confirmation = False
         self.session.feedback = ""
         self._show_only("game")
         self._start_round()
@@ -184,9 +186,6 @@ class ScriptureBaseballApp(App):
         self.leaderboard_panel.set_status("")
 
     def next_round(self) -> None:
-        if self.session.pending_end_game_confirmation:
-            self._confirm_end_game_to_menu()
-            return
         if not self.session.round_submitted:
             self.game_panel.set_feedback("[red]Submit an answer before continuing.[/red]")
             return
@@ -196,18 +195,12 @@ class ScriptureBaseballApp(App):
         self._start_round()
 
     def handle_round_action(self, answer_text: str) -> None:
-        if self.session.pending_end_game_confirmation:
-            self._confirm_end_game_to_menu()
-            return
         if self.session.round_submitted:
             self.next_round()
             return
         self.submit_answer(answer_text)
 
     def request_hint(self) -> None:
-        if self.session.pending_end_game_confirmation:
-            self.game_panel.set_feedback("[red]Confirm ending the game or continue playing from Back to Menu.[/red]")
-            return
         if self.session.round_submitted:
             if self.game.is_game_over():
                 self.game_panel.set_feedback("[red]Game is complete. Press End Game to view results.[/red]")
@@ -226,9 +219,6 @@ class ScriptureBaseballApp(App):
         self._refresh_game_panel()
 
     def submit_answer(self, answer_text: str) -> None:
-        if self.session.pending_end_game_confirmation:
-            self.game_panel.set_feedback("[red]Confirm ending the game before submitting.[/red]")
-            return
         if not answer_text:
             self.game_panel.set_feedback("[red]Enter an answer before submitting.[/red]")
             return
@@ -259,7 +249,6 @@ class ScriptureBaseballApp(App):
         self.game_panel.set_feedback(self.session.feedback)
         self.game_panel.clear_answer()
         self.session.round_submitted = True
-        self.session.pending_end_game_confirmation = False
         self._refresh_game_panel()
 
     def return_to_setup(self) -> None:
@@ -270,14 +259,17 @@ class ScriptureBaseballApp(App):
             self._show_only("login")
             return
         if self.game_panel.display:
-            if self.session.pending_end_game_confirmation:
-                self.session.pending_end_game_confirmation = False
-                self.game_panel.set_feedback(self.session.feedback)
-                self._update_round_controls()
-                return
-            self._request_end_game_confirmation()
+            self._show_only("confirm-exit")
             return
         self._enter_setup()
+
+    def confirm_exit_game(self) -> None:
+        message = self._submit_current_score(finalize_message=False)
+        self._enter_setup()
+        self.setup_panel.set_status(message)
+
+    def cancel_exit_game(self) -> None:
+        self._show_only("game")
 
     def _start_round(self) -> None:
         selected = self.game.start_round()
@@ -288,7 +280,6 @@ class ScriptureBaseballApp(App):
         self.session.hint_lines = []
         self.session.hint_target_index = None
         self.session.round_submitted = False
-        self.session.pending_end_game_confirmation = False
         self.session.feedback = ""
         self._show_only("game")
         self.game_panel.set_hint([], None)
@@ -329,14 +320,6 @@ class ScriptureBaseballApp(App):
         self._update_round_controls()
 
     def _update_round_controls(self) -> None:
-        if self.session.pending_end_game_confirmation:
-            self.game_panel.set_controls(
-                "Confirm End Game",
-                True,
-                False,
-            )
-            return
-
         if self.session.round_submitted:
             if self.game.is_game_over():
                 self.game_panel.set_controls(
@@ -358,19 +341,6 @@ class ScriptureBaseballApp(App):
             True,
             self.game.get_hints_remaining() != 0,
         )
-
-    def _request_end_game_confirmation(self) -> None:
-        self.session.pending_end_game_confirmation = True
-        self.game_panel.set_feedback(
-            "[yellow]End game and return to menu? Current score will be submitted. "
-            "Press Confirm End Game to continue, or Back to Menu again to cancel.[/yellow]"
-        )
-        self._update_round_controls()
-
-    def _confirm_end_game_to_menu(self) -> None:
-        message = self._submit_current_score(finalize_message=False)
-        self._enter_setup()
-        self.setup_panel.set_status(message)
 
     def _submit_current_score(self, finalize_message: bool) -> str:
         self.session.final_score = self.game.get_final_score()
@@ -454,16 +424,20 @@ class ScriptureBaseballApp(App):
         if life_lost:
             context_notes.append("life lost")
 
+        notes_text = ""
+        if len(context_notes) > 0:
+            notes_text = " [dim](" + "; ".join(context_notes) + ")[/dim]"
+
         if closeness.get("is_exact"):
             return (
                 f"[green]Great guess![/green] Correct answer: [bold]{correct_answer}[/bold]. "
-                f"You earned +{points} points this round."
+                f"You earned +{points} points this round.{notes_text}"
             )
 
         distance_phrase = self._format_distance_phrase(closeness)
         return (
             f"[yellow]Close, but not exact.[/yellow] Correct answer: [bold]{correct_answer}[/bold]. "
-            f"You were {distance_phrase}. You earned +{points} points this round. "
+            f"You were {distance_phrase}. You earned +{points} points this round.{notes_text}"
         )
 
     def _format_distance_phrase(self, closeness: dict) -> str:
@@ -487,6 +461,7 @@ class ScriptureBaseballApp(App):
             "register": self.register_panel,
             "setup": self.setup_panel,
             "game": self.game_panel,
+            "confirm-exit": self.confirm_exit_panel,
             "results": self.results_panel,
             "leaderboard": self.leaderboard_panel,
         }
