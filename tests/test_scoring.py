@@ -48,6 +48,12 @@ class TestScoring(unittest.TestCase):
 
         self.assertGreaterEqual(all_points, gospel_points)
 
+    def test_leaderboard_key_uses_category_and_mode(self) -> None:
+        self.assertEqual(
+            ScriptureBaseballApp._build_score_category_id("new_testament", "finite_5"),
+            "new_testament-finite_5",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

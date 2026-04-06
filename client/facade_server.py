@@ -44,9 +44,8 @@ class FacadeServer:
     def get_highscore(self, auth_token: str, category_id: str) -> HighscoreResponse:
         return self._server.get_highscore(auth_token, category_id)
 
-    def update_highscore(self, auth_token: str, category_id: str, score: float) -> None:
-        rounded_score: int = int(round(float(score)))
-        self._server.update_highscore(auth_token, category_id, UpdateHighscoreRequest(rounded_score))
+    def update_highscore(self, auth_token: str, category_id: str, score: int) -> None:
+        self._server.update_highscore(auth_token, category_id, UpdateHighscoreRequest(score))
 
     def get_top(self, auth_token: str, category_id: str, count: int) -> TopScoresResponse:
         return self._server.get_top(auth_token, category_id, TopScoresRequest(count))

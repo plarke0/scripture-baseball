@@ -137,21 +137,27 @@ class ScriptureBaseballApp(App):
         self._show_only("register")
 
     def open_leaderboards(self) -> None:
-        self.leaderboard_panel.load_categories(self.game.get_available_categories())
+        self.leaderboard_panel.load_filters(
+            self.game.get_available_modes(),
+            self.game.get_available_categories(),
+        )
         self.leaderboard_panel.set_status("Loading leaderboard...")
         self.leaderboard_panel.set_rows("", [])
         self._show_only("leaderboard")
+        default_mode_id = self.leaderboard_panel.get_selected_mode_id()
         default_category_id = self.leaderboard_panel.get_selected_category_id()
-        if default_category_id is not None:
-            self.refresh_leaderboard(default_category_id)
+        if default_mode_id is not None and default_category_id is not None:
+            self.refresh_leaderboard(default_category_id, default_mode_id)
 
-    def refresh_leaderboard(self, category_id: str) -> None:
+    def refresh_leaderboard(self, category_id: str, mode_id: str) -> None:
         if self.session.auth_token is None:
             self.leaderboard_panel.set_status("Login is required to view leaderboards.")
             return
+
+        leaderboard_key = self._build_score_category_id(category_id, mode_id)
         try:
-            top_scores = self.facade.get_top(self.session.auth_token, category_id, 10).top_scores
-            my_score = self.facade.get_highscore(self.session.auth_token, category_id).highscore
+            top_scores = self.facade.get_top(self.session.auth_token, leaderboard_key, 10).top_scores
+            my_score = self.facade.get_highscore(self.session.auth_token, leaderboard_key).highscore
         except Exception as error:
             self.leaderboard_panel.set_status(str(error))
             return
@@ -161,7 +167,7 @@ class ScriptureBaseballApp(App):
             rows.append(f"{index}. {score.username} - {score.highscore}")
 
         self.leaderboard_panel.set_rows(
-            f"[bold]Top Scores ({category_id})[/bold]\nYour Highscore: {my_score.highscore}",
+            f"[bold]Top Scores ({category_id} / {mode_id})[/bold]\nYour Highscore: {my_score.highscore}",
             rows,
         )
         self.leaderboard_panel.set_status("")
@@ -248,11 +254,15 @@ class ScriptureBaseballApp(App):
 
     def _finish_game(self) -> None:
         self.session.final_score = self.game.get_final_score()
-        if self.session.auth_token and self.session.selected_category_id:
+        if self.session.auth_token and self.session.selected_category_id and self.session.selected_mode_id:
             try:
+                leaderboard_key = self._build_score_category_id(
+                    self.session.selected_category_id,
+                    self.session.selected_mode_id,
+                )
                 self.facade.update_highscore(
                     self.session.auth_token,
-                    self.session.selected_category_id,
+                    leaderboard_key,
                     self.session.final_score,
                 )
             except Exception as error:
@@ -362,6 +372,10 @@ class ScriptureBaseballApp(App):
         }
         for name, panel in panels.items():
             panel.display = name == visible_panel
+
+    @staticmethod
+    def _build_score_category_id(category_id: str, mode_id: str) -> str:
+        return f"{category_id}-{mode_id}"
 
 
 if __name__ == "__main__":
