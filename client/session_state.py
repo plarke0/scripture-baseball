@@ -18,4 +18,5 @@ class ClientSessionState:
     hint_lines: list[str] = field(default_factory=list)
     hint_target_index: int | None = None
     round_submitted: bool = False
+    pending_end_game_confirmation: bool = False
     feedback: str = ""

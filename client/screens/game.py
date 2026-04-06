@@ -32,7 +32,6 @@ class GamePanel(Container):
         score: int,
         lives_remaining: int | None,
         round_progress: str,
-        rounds_remaining: int | None,
         show_lives: bool,
     ) -> None:
         self.query_one("#round-info", Static).update(f"[bold]Round:[/bold] {round_progress}")
@@ -41,10 +40,6 @@ class GamePanel(Container):
         if show_lives:
             lives_text = f"[bold red]Lives:[/bold red] {lives_remaining if lives_remaining is not None else '--'}"
         self.query_one("#lives-info", Static).update(lives_text)
-        if rounds_remaining is not None:
-            self.query_one("#feedback-output", Static).update(
-                f"[dim]Rounds remaining: {rounds_remaining}[/dim]"
-            )
 
     def set_prompt(self, prompt_text: str) -> None:
         self.query_one("#prompt-info", Static).update(f"[bold cyan]{prompt_text}[/bold cyan]")
