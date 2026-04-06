@@ -77,7 +77,20 @@ class ScriptureBaseballApp(App):
             self.register_panel.set_status("Username, email, and password are required.")
             return
 
-        response = self.facade.register_user(username, email, password)
+        try:
+            response = self.facade.register_user(username, email, password)
+        except ValueError as error:
+            self.register_panel.set_status(str(error))
+            return
+        except Exception:
+            self.register_panel.set_status("Registration failed. Please try again.")
+            return
+
+        auth_token = getattr(response, "auth_token", None)
+        if not isinstance(auth_token, str) or len(auth_token.strip()) == 0:
+            self.register_panel.set_status("Registration failed. Please try again.")
+            return
+
         self.session.auth_token = response.auth_token
         self.session.username = username
         self.register_panel.clear_form()
@@ -89,7 +102,20 @@ class ScriptureBaseballApp(App):
             self.login_panel.set_status("Username and password are required.")
             return
 
-        response = self.facade.login_user(username, password)
+        try:
+            response = self.facade.login_user(username, password)
+        except ValueError as error:
+            self.login_panel.set_status(str(error))
+            return
+        except Exception:
+            self.login_panel.set_status("Login failed. Please try again.")
+            return
+
+        auth_token = getattr(response, "auth_token", None)
+        if not isinstance(auth_token, str) or len(auth_token.strip()) == 0:
+            self.login_panel.set_status("Login failed. Please try again.")
+            return
+
         self.session.auth_token = response.auth_token
         self.session.username = username
         self.login_panel.clear_form()
