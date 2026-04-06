@@ -76,7 +76,9 @@ class TestScoring(unittest.TestCase):
         )
 
         self.assertIn("Great guess", summary)
-        self.assertIn("finite hint penalty applied", summary)
+        self.assertIn("after the hint reduction", summary)
+        self.assertIn("50% point reduction", summary)
+        self.assertIn("+500 points", summary)
 
     def test_submission_summary_includes_life_loss_note(self) -> None:
         app = self._build_app("endless", "new_testament")

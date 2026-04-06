@@ -509,9 +509,18 @@ class ScriptureBaseballApp(App):
     ) -> str:
         correct_answer = self.game.get_correct_answer()
         context_notes: list[str] = []
+        points_phrase = f"You earned +{points} points this round."
 
         if self.session.selected_mode_id != "endless" and self.game.get_hints_used_this_round() > 0:
-            context_notes.append("finite hint penalty applied")
+            multiplier = float(self.game.get_scoring_config()["finite_hint_multiplier"])
+            penalty_percent = max(0.0, (1.0 - multiplier) * 100.0)
+            if penalty_percent.is_integer():
+                penalty_display = str(int(penalty_percent))
+            else:
+                penalty_display = f"{penalty_percent:.1f}"
+
+            context_notes.append(f"Hint used: {penalty_display}% point reduction")
+            points_phrase = f"You earned +{points} points this round after the hint reduction."
         if life_lost:
             context_notes.append("life lost")
 
@@ -523,14 +532,14 @@ class ScriptureBaseballApp(App):
             success_text = rich_text("Great guess!", "feedback_success")
             return (
                 f"{success_text} Correct answer: [bold]{correct_answer}[/bold]. "
-                f"You earned +{points} points this round.{notes_text}"
+                f"{points_phrase}{notes_text}"
             )
 
         distance_phrase = self._format_distance_phrase(closeness)
         warning_text = rich_text("Close, but not exact.", "feedback_warning")
         return (
             f"{warning_text} Correct answer: [bold]{correct_answer}[/bold]. "
-            f"You were {distance_phrase}. You earned +{points} points this round.{notes_text}"
+            f"You were {distance_phrase}. {points_phrase}{notes_text}"
         )
 
     def _format_distance_phrase(self, closeness: dict) -> str:
