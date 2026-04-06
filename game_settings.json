@@ -35,6 +35,16 @@
       ]
     },
     {
+      "id": "gospels",
+      "name": "Gospels",
+      "volumes": [
+        {
+          "id": "newtestament",
+          "book_ids": ["matthew", "mark", "luke", "john"]
+        }
+      ]
+    },
+    {
       "id": "bible",
       "name": "Bible",
       "volumes": [
@@ -50,13 +60,31 @@
       ]
     },
     {
-      "id": "gospels",
-      "name": "Gospels",
+      "id": "old_testament",
+      "name": "Old Testament",
       "volumes": [
-        {
-          "id": "newtestament",
-          "book_ids": ["matthew", "mark", "luke", "john"]
-        }
+        { "id": "oldtestament" }
+      ]
+    },
+    {
+      "id": "book_of_mormon",
+      "name": "Book of Mormon",
+      "volumes": [
+        { "id": "bookofmormon" }
+      ]
+    },
+    {
+      "id": "doctrine_and_covenants",
+      "name": "Doctrine and Covenants",
+      "volumes": [
+        { "id": "doctrineandcovenants" }
+      ]
+    },
+    {
+      "id": "pearl_of_great_price",
+      "name": "Pearl of Great Price",
+      "volumes": [
+        { "id": "pearlofgreatprice" }
       ]
     },
     {
@@ -84,40 +112,12 @@
       ]
     },
     {
-      "id": "book_of_mormon",
-      "name": "Book of Mormon",
-      "volumes": [
-        { "id": "bookofmormon" }
-      ]
-    },
-    {
       "id": "restoration_scriptures",
       "name": "Restoration Scriptures",
       "volumes": [
         { "id": "bookofmormon" },
         { "id": "doctrineandcovenants" },
         { "id": "pearlofgreatprice" }
-      ]
-    },
-    {
-      "id": "old_testament",
-      "name": "Old Testament",
-      "volumes": [
-        { "id": "oldtestament" }
-      ]
-    },
-    {
-      "id": "pearl_of_great_price",
-      "name": "Pearl of Great Price",
-      "volumes": [
-        { "id": "pearlofgreatprice" }
-      ]
-    },
-    {
-      "id": "doctrine_and_covenants",
-      "name": "Doctrine and Covenants",
-      "volumes": [
-        { "id": "doctrineandcovenants" }
       ]
     }
   ]
