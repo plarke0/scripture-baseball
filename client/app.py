@@ -314,6 +314,7 @@ class ScriptureBaseballApp(App):
             state["round_number"],
             state["score"],
             state["lives_remaining"],
+            state["hints_remaining"],
             round_progress,
             state["mode_id"] == "endless",
         )
