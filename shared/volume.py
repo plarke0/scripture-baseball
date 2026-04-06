@@ -42,6 +42,45 @@ class Volume:
 		book_name: str = self.get_book_name(book_id)
 		return self._book_to_index[book_name]
 
+	def get_all_book_ids(self) -> list[str]:
+		return [self._book_to_id[book_name] for book_name in self._book_order]
+
+	def get_total_verses_for_book_ids(self, book_ids: list[str]) -> int:
+		book_names: list[str] = self._normalize_book_ids(book_ids)
+		total_verses: int = 0
+		for book_name in book_names:
+			total_verses += self._book_to_total_verses[book_name]
+		return total_verses
+
+	def get_random_verse_from_book_ids(self, book_ids: list[str]) -> VerseRequest:
+		book_names: list[str] = self._normalize_book_ids(book_ids)
+		total_verses: int = self.get_total_verses_for_book_ids(book_ids)
+
+		random_verse_index: int = self._rng.randint(1, total_verses)
+		for book_name in self._book_order:
+			if book_name not in book_names:
+				continue
+
+			book_total_verses: int = self._book_to_total_verses[book_name]
+			if random_verse_index > book_total_verses:
+				random_verse_index -= book_total_verses
+				continue
+
+			chapters: list[int] = self._book_to_chapters[book_name]
+			for chapter_number, chapter_verse_count in enumerate(chapters, start=1):
+				if random_verse_index > chapter_verse_count:
+					random_verse_index -= chapter_verse_count
+					continue
+
+				return VerseRequest(
+					self._volume_id,
+					self._book_to_id[book_name],
+					chapter_number,
+					random_verse_index
+				)
+
+		raise RuntimeError("Failed to resolve random verse in requested book subset")
+
 	def validate_verse_reference(self, book_name: str, chapter: int, verse: int) -> None:
 		chapter_verse_count: int = self.get_chapter_verse_count(book_name, chapter)
 		if not isinstance(verse, int):
@@ -207,3 +246,30 @@ class Volume:
 
 	def _chapter_reference_key(self, book: str, chapter: int) -> tuple[int, int]:
 		return (self._book_to_index[book], chapter)
+
+	def _normalize_book_ids(self, book_ids: list[str]) -> list[str]:
+		if not isinstance(book_ids, list) or len(book_ids) == 0:
+			raise ValueError("book_ids must be a non-empty list")
+
+		normalized_book_names: list[str] = []
+		seen_book_ids: set[str] = set()
+		for book_id in book_ids:
+			if not isinstance(book_id, str) or not book_id.strip():
+				raise ValueError("Each book_id must be a non-empty string")
+
+			normalized_book_id: str = book_id.strip()
+			if normalized_book_id in seen_book_ids:
+				raise ValueError(f"Duplicate book id found: {normalized_book_id}")
+
+			seen_book_ids.add(normalized_book_id)
+			normalized_book_names.append(self.get_book_name(normalized_book_id))
+
+		ordered_book_names: list[str] = []
+		for book_name in self._book_order:
+			if book_name in normalized_book_names:
+				ordered_book_names.append(book_name)
+
+		if len(ordered_book_names) != len(normalized_book_names):
+			raise ValueError("book_ids contain unknown values")
+
+		return ordered_book_names

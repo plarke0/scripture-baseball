@@ -1,0 +1,124 @@
+{
+  "modes": [
+    {
+      "id": "endless",
+      "name": "Endless",
+      "type": "endless",
+      "hints": 3,
+      "lives": 3
+    },
+    {
+      "id": "finite_5",
+      "name": "Five Rounds",
+      "type": "finite",
+      "rounds": 5,
+      "hints_per_round": 1
+    },
+    {
+      "id": "finite_10",
+      "name": "Ten Rounds",
+      "type": "finite",
+      "rounds": 10,
+      "hints_per_round": 1
+    }
+  ],
+  "categories": [
+    {
+      "id": "all_scripture",
+      "name": "Standard Works",
+      "volumes": [
+        { "id": "newtestament" },
+        { "id": "oldtestament" },
+        { "id": "bookofmormon" },
+        { "id": "doctrineandcovenants" },
+        { "id": "pearlofgreatprice" }
+      ]
+    },
+    {
+      "id": "bible",
+      "name": "Bible",
+      "volumes": [
+        { "id": "newtestament" },
+        { "id": "oldtestament" }
+      ]
+    },
+    {
+      "id": "new_testament",
+      "name": "New Testament",
+      "volumes": [
+        { "id": "newtestament" }
+      ]
+    },
+    {
+      "id": "gospels",
+      "name": "Gospels",
+      "volumes": [
+        {
+          "id": "newtestament",
+          "book_ids": ["matthew", "mark", "luke", "john"]
+        }
+      ]
+    },
+    {
+      "id": "pauls_epistles",
+      "name": "Paul's Epistles",
+      "volumes": [
+        {
+          "id": "newtestament",
+          "book_ids": [
+            "romans",
+            "1corinthians",
+            "2corinthians",
+            "galatians",
+            "ephesians",
+            "philippians",
+            "colossians",
+            "1thessalonians",
+            "2thessalonians",
+            "1timothy",
+            "2timothy",
+            "titus",
+            "philemon"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "book_of_mormon",
+      "name": "Book of Mormon",
+      "volumes": [
+        { "id": "bookofmormon" }
+      ]
+    },
+    {
+      "id": "restoration_scriptures",
+      "name": "Restoration Scriptures",
+      "volumes": [
+        { "id": "bookofmormon" },
+        { "id": "doctrineandcovenants" },
+        { "id": "pearlofgreatprice" }
+      ]
+    },
+    {
+      "id": "old_testament",
+      "name": "Old Testament",
+      "volumes": [
+        { "id": "oldtestament" }
+      ]
+    },
+    {
+      "id": "pearl_of_great_price",
+      "name": "Pearl of Great Price",
+      "volumes": [
+        { "id": "pearlofgreatprice" }
+      ]
+    },
+    {
+      "id": "doctrine_and_covenants",
+      "name": "Doctrine and Covenants",
+      "volumes": [
+        { "id": "doctrineandcovenants" }
+      ]
+    }
+  ]
+}
