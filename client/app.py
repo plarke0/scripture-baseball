@@ -250,7 +250,12 @@ class ScriptureBaseballApp(App):
         self.game.add_score(points)
 
         self.session.final_score = self.game.get_final_score()
-        self.session.feedback = self._format_submission_feedback(result["closeness"], points)
+        self.session.feedback = self._format_submission_feedback(
+            result["closeness"],
+            points,
+            result["life_lost"],
+            result["lives_remaining"],
+        )
         self.game_panel.set_feedback(self.session.feedback)
         self.game_panel.clear_answer()
         self.session.round_submitted = True
@@ -369,6 +374,8 @@ class ScriptureBaseballApp(App):
 
     def _submit_current_score(self, finalize_message: bool) -> str:
         self.session.final_score = self.game.get_final_score()
+        mode_name = self._get_mode_name(self.session.selected_mode_id)
+        rounds_played = self.session.current_round
         if self.session.auth_token and self.session.selected_category_id and self.session.selected_mode_id:
             leaderboard_key = self._build_score_category_id(
                 self.session.selected_category_id,
@@ -386,8 +393,14 @@ class ScriptureBaseballApp(App):
                 return f"Returned to menu, but score submission failed: {error}"
 
             if finalize_message:
-                return "Score submitted successfully."
-            return "Returned to menu. Current score submitted successfully."
+                return (
+                    f"Completed {rounds_played} rounds in {mode_name}. "
+                    "Score submitted successfully."
+                )
+            return (
+                f"Returned to menu from {mode_name} after {rounds_played} rounds. "
+                "Current score submitted successfully."
+            )
 
         if finalize_message:
             return "Game over."
@@ -426,25 +439,47 @@ class ScriptureBaseballApp(App):
 
         return max(0, min(base_points, max_round_points))
 
-    def _format_submission_feedback(self, closeness: dict, points: int) -> str:
-        unit = closeness.get("unit")
-        offset = closeness.get("offset")
+    def _format_submission_feedback(
+        self,
+        closeness: dict,
+        points: int,
+        life_lost: bool,
+        _lives_remaining: int | None,
+    ) -> str:
         correct_answer = self.game.get_correct_answer()
-        running_total = self.game.get_final_score()
-        penalty_note = ""
+        context_notes: list[str] = []
+
         if self.session.selected_mode_id != "endless" and self.game.get_hints_used_this_round() > 0:
-            penalty_note = " [dim](finite hint penalty applied)[/dim]"
+            context_notes.append("finite hint penalty applied")
+        if life_lost:
+            context_notes.append("life lost")
 
         if closeness.get("is_exact"):
             return (
-                f"[green]Exact![/green] Correct: [bold]{correct_answer}[/bold]. "
-                f"Round points: +{points}. Total: {running_total}.{penalty_note}"
+                f"[green]Great guess![/green] Correct answer: [bold]{correct_answer}[/bold]. "
+                f"You earned +{points} points this round."
             )
+
+        distance_phrase = self._format_distance_phrase(closeness)
         return (
-            f"[yellow]Not exact.[/yellow] Correct: [bold]{correct_answer}[/bold]. "
-            f"Closest miss: {unit} (offset {offset}). "
-            f"Round points: +{points}. Total: {running_total}.{penalty_note}"
+            f"[yellow]Close, but not exact.[/yellow] Correct answer: [bold]{correct_answer}[/bold]. "
+            f"You were {distance_phrase}. You earned +{points} points this round. "
         )
+
+    def _format_distance_phrase(self, closeness: dict) -> str:
+        unit = str(closeness.get("unit", "book"))
+        absolute_offset = int(closeness.get("absolute_offset", 0))
+
+        unit_label = unit if absolute_offset == 1 else f"{unit}s"
+        return f"{absolute_offset} {unit_label} away"
+
+    def _get_mode_name(self, mode_id: str | None) -> str:
+        if mode_id is None:
+            return "this mode"
+        for mode in self.game.get_available_modes():
+            if mode.get("id") == mode_id:
+                return str(mode.get("name", mode_id))
+        return mode_id
 
     def _show_only(self, visible_panel: str) -> None:
         panels = {

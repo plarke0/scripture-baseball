@@ -54,6 +54,46 @@ class TestScoring(unittest.TestCase):
             "new_testament-finite_5",
         )
 
+    def test_distance_phrase_is_human_readable(self) -> None:
+        app = self._build_app("finite_5", "new_testament")
+
+        phrase = app._format_distance_phrase({"unit": "chapter", "absolute_offset": 2, "offset": -2})
+
+        self.assertIn("2 chapters away", phrase)
+        self.assertNotIn("target", phrase)
+
+    def test_submission_summary_includes_penalty_note_when_hint_used(self) -> None:
+        app = self._build_app("finite_5", "new_testament")
+        app.game._hints_used_this_round = 1
+        app.game.get_correct_answer = lambda: "Matthew 1:1"
+        app.game.get_final_score = lambda: 500
+
+        summary = app._format_submission_feedback(
+            {"is_exact": True, "unit": "verse", "absolute_offset": 0, "offset": 0},
+            500,
+            False,
+            None,
+        )
+
+        self.assertIn("Great guess", summary)
+        self.assertIn("finite hint penalty applied", summary)
+
+    def test_submission_summary_includes_life_loss_note(self) -> None:
+        app = self._build_app("endless", "new_testament")
+        app.game.get_correct_answer = lambda: "Luke 2:10"
+        app.game.get_final_score = lambda: 120
+
+        summary = app._format_submission_feedback(
+            {"is_exact": False, "unit": "book", "absolute_offset": 3, "offset": 3},
+            20,
+            True,
+            2,
+        )
+
+        self.assertIn("Close, but not exact", summary)
+        self.assertIn("life lost", summary)
+        self.assertNotIn("lives remaining", summary)
+
 
 if __name__ == "__main__":
     unittest.main()
