@@ -3,6 +3,13 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
+# Increase/decrease this one value to scale the whole Tk UI.
+UI_SCALE = 1.3
+
+
+def _scaled(value: int) -> int:
+    return max(1, int(round(value * UI_SCALE)))
+
 # Change colors here to update UI text color styling across panels.
 UI_COLORS: dict[str, str] = {
     "title": "green",
@@ -38,21 +45,21 @@ TK_COLORS: dict[str, str] = {
 }
 
 TK_FONTS: dict[str, tuple[str, int] | tuple[str, int, str]] = {
-    "title": ("Cambria", 18, "bold"),
-    "section": ("Cambria", 14, "bold"),
-    "body": ("Segoe UI", 10),
-    "body_bold": ("Segoe UI", 10, "bold"),
+    "title": ("Cambria", _scaled(18), "bold"),
+    "section": ("Cambria", _scaled(14), "bold"),
+    "body": ("Segoe UI", _scaled(10)),
+    "body_bold": ("Segoe UI", _scaled(10), "bold"),
 }
 
 TK_SIZES: dict[str, int] = {
-    "panel_padding": 22,
-    "container_padding": 16,
-    "field_width": 38,
-    "answer_width": 44,
-    "button_width": 24,
-    "wrap_width": 640,
-    "button_padding_x": 14,
-    "button_padding_y": 8,
+    "panel_padding": _scaled(22),
+    "container_padding": _scaled(16),
+    "field_width": _scaled(38),
+    "answer_width": _scaled(44),
+    "button_width": _scaled(24),
+    "wrap_width": _scaled(640),
+    "button_padding_x": _scaled(14),
+    "button_padding_y": _scaled(8),
 }
 
 
