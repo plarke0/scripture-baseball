@@ -369,6 +369,9 @@ class TkLeaderboardPanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
         self.columnconfigure(2, weight=1)
+        # Set all rows to have minimal height except the final spacer
+        for row in range(3):
+            self.rowconfigure(row, minsize=0)
         self.rowconfigure(3, weight=1)
 
         self._cached_mode_options: tuple[str, ...] | None = None
@@ -430,7 +433,7 @@ class TkLeaderboardPanel(ttk.Frame):
         content_label.grid(
             row=3,
             column=1,
-            sticky="nsew",
+            sticky="ew",
         )
         _bind_dynamic_wrap(content_label)
 
@@ -504,8 +507,9 @@ class TkGamePanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
         self.columnconfigure(2, weight=1)
-        self.rowconfigure(3, weight=1)
-        self.rowconfigure(5, weight=1)
+        # Set all rows to have minimal height except the final spacer
+        for row in range(9):
+            self.rowconfigure(row, minsize=0)
         self.rowconfigure(9, weight=1)
 
         self.title_var = tk.StringVar(value="Game")
@@ -529,20 +533,20 @@ class TkGamePanel(ttk.Frame):
         ttk.Label(metrics, textvariable=self.lives_info_var).grid(row=0, column=2, sticky="w")
         ttk.Label(metrics, textvariable=self.hints_info_var).grid(row=0, column=3, sticky="w")
 
-        ttk.Label(self, text="Verse to Guess", style="BodyMuted.TLabel").grid(row=2, column=1, sticky="w")
+        ttk.Label(self, text="Verse to Guess", style="Header.TLabel").grid(row=2, column=1, sticky="w", pady=(0, 3))
         prompt_label = ttk.Label(self, textvariable=self.prompt_var, wraplength=TK_SIZES["wrap_width"], justify="left")
         prompt_label.grid(
             row=3,
             column=1,
-            sticky="nsew",
-            pady=(0, 8),
+            sticky="ew",
+            pady=(0, 12),
         )
         _bind_dynamic_wrap(prompt_label)
 
-        self.hint_label = ttk.Label(self, text="Hint Verses", style="BodyMuted.TLabel")
-        self.hint_label.grid(row=4, column=1, sticky="w")
+        self.hint_label = ttk.Label(self, text="Hint Verses", style="Header.TLabel")
+        self.hint_label.grid(row=4, column=1, sticky="w", pady=(0, 3))
         self.hint_output = ttk.Label(self, textvariable=self.hint_var, wraplength=TK_SIZES["wrap_width"], justify="left")
-        self.hint_output.grid(row=5, column=1, sticky="nsew", pady=(0, 8))
+        self.hint_output.grid(row=5, column=1, sticky="ew", pady=(0, 12))
         _bind_dynamic_wrap(self.hint_output)
 
         feedback_label = ttk.Label(
@@ -684,7 +688,9 @@ class TkResultsPanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
         self.columnconfigure(2, weight=1)
-        self.rowconfigure(2, weight=1)
+        # Set all rows to have minimal height except the final spacer
+        for row in range(5):
+            self.rowconfigure(row, minsize=0)
         self.rowconfigure(5, weight=1)
 
         ttk.Label(self, text="Game Complete", style="Section.TLabel").grid(row=0, column=1, sticky="ew", pady=(0, 10))
@@ -696,7 +702,7 @@ class TkResultsPanel(ttk.Frame):
         message_label.grid(
             row=2,
             column=1,
-            sticky="nsew",
+            sticky="ew",
             pady=(8, 10),
         )
         _bind_dynamic_wrap(message_label)
@@ -731,7 +737,9 @@ class TkConfirmExitPanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
         self.columnconfigure(2, weight=1)
-        self.rowconfigure(1, weight=1)
+        # Set all rows to have minimal height except the final spacer
+        for row in range(4):
+            self.rowconfigure(row, minsize=0)
         self.rowconfigure(4, weight=1)
 
         ttk.Label(self, text="Leave Current Game?", style="Section.TLabel").grid(row=0, column=1, sticky="ew", pady=(0, 10))
@@ -741,7 +749,7 @@ class TkConfirmExitPanel(ttk.Frame):
             wraplength=TK_SIZES["wrap_width"],
             justify="left",
         )
-        message_label.grid(row=1, column=1, sticky="nsew", pady=(0, 10))
+        message_label.grid(row=1, column=1, sticky="ew", pady=(0, 10))
         _bind_dynamic_wrap(message_label)
 
         ttk.Button(self, text="Confirm Leave", style="Danger.TButton", command=on_confirm).grid(

@@ -47,6 +47,7 @@ TK_COLORS: dict[str, str] = {
 TK_FONTS: dict[str, tuple[str, int] | tuple[str, int, str]] = {
     "title": ("Cambria", _scaled(18), "bold"),
     "section": ("Cambria", _scaled(14), "bold"),
+    "header": ("Segoe UI", _scaled(12), "bold"),
     "body": ("Segoe UI", _scaled(10)),
     "body_bold": ("Segoe UI", _scaled(10), "bold"),
 }
@@ -77,6 +78,7 @@ def configure_tk_theme(root: tk.Tk) -> None:
     style.configure("TLabel", background=TK_COLORS["bg"], foreground=TK_COLORS["text"])
     style.configure("Title.TLabel", font=TK_FONTS["title"], foreground=TK_COLORS["text"])
     style.configure("Section.TLabel", font=TK_FONTS["section"], foreground=TK_COLORS["text"])
+    style.configure("Header.TLabel", font=TK_FONTS["header"], foreground=TK_COLORS["text"])
     style.configure("BodyMuted.TLabel", foreground=TK_COLORS["muted_text"])
     style.configure("Feedback.TLabel", font=TK_FONTS["body_bold"], foreground=TK_COLORS["text"])
     style.configure(
