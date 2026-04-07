@@ -544,7 +544,13 @@ class TkGamePanel(ttk.Frame):
         self.hint_output.grid(row=5, column=1, sticky="nsew", pady=(0, 8))
         _bind_dynamic_wrap(self.hint_output)
 
-        feedback_label = ttk.Label(self, textvariable=self.feedback_var, wraplength=TK_SIZES["wrap_width"], justify="left")
+        feedback_label = ttk.Label(
+            self,
+            textvariable=self.feedback_var,
+            wraplength=TK_SIZES["wrap_width"],
+            justify="left",
+            style="Feedback.TLabel",
+        )
         feedback_label.grid(
             row=6,
             column=1,

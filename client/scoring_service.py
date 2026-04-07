@@ -92,13 +92,13 @@ class ScoringService:
         if closeness.get("is_exact"):
             success_text = style("Great guess!", "feedback_success")
             return (
-                f"{success_text} Correct answer: [bold]{correct_answer}[/bold]. "
+                f"{success_text} Correct answer: {correct_answer}. "
                 f"{points_phrase}{notes_text}"
             )
 
         distance_phrase = ScoringService.format_distance_phrase(closeness)
         warning_text = style("Close, but not exact.", "feedback_warning")
         return (
-            f"{warning_text} Correct answer: [bold]{correct_answer}[/bold]. "
+            f"{warning_text} Correct answer: {correct_answer}. "
             f"You were {distance_phrase}. {points_phrase}{notes_text}"
         )

@@ -71,6 +71,7 @@ def configure_tk_theme(root: tk.Tk) -> None:
     style.configure("Title.TLabel", font=TK_FONTS["title"], foreground=TK_COLORS["text"])
     style.configure("Section.TLabel", font=TK_FONTS["section"], foreground=TK_COLORS["text"])
     style.configure("BodyMuted.TLabel", foreground=TK_COLORS["muted_text"])
+    style.configure("Feedback.TLabel", font=TK_FONTS["body_bold"], foreground=TK_COLORS["text"])
     style.configure(
         "TEntry",
         fieldbackground=TK_COLORS["panel"],
