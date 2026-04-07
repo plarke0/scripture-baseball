@@ -18,6 +18,21 @@ class TestGameModes(unittest.TestCase):
 		self.assertEqual(selected.volume, "newtestament")
 		self.assertIn(selected.book, {"matthew", "mark", "luke", "john"})
 
+	def test_available_dropdown_sources_are_cached_safely(self) -> None:
+		game = Game()
+
+		first_modes = game.get_available_modes()
+		first_categories = game.get_available_categories()
+		first_modes.append({"id": "temporary", "name": "Temporary"})
+		first_categories.clear()
+
+		second_modes = game.get_available_modes()
+		second_categories = game.get_available_categories()
+
+		self.assertNotIn({"id": "temporary", "name": "Temporary"}, second_modes)
+		self.assertGreater(len(second_modes), 0)
+		self.assertGreater(len(second_categories), 0)
+
 	def test_endless_life_loss_on_wrong_book(self) -> None:
 		game = Game()
 		game.select_mode("endless")

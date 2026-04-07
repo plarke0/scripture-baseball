@@ -6,6 +6,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Footer, Header
 
 from client.facade_server import FacadeServer
+from client.scoring_service import ScoringService
 from client.session_state import ClientSessionState
 from client.screens.confirm_exit import ConfirmExitPanel
 from client.screens.game import GamePanel
@@ -53,6 +54,10 @@ class ScriptureBaseballApp(App):
         self.facade: FacadeServer = FacadeServer()
         self.game: Game = Game()
         self.session: ClientSessionState = ClientSessionState()
+
+        # Debounce state for leaderboard refresh
+        self._leaderboard_debounce_timer: threading.Timer | None = None
+        self._leaderboard_debounce_delay = 0.4  # seconds
 
         self.login_panel = LoginPanel(id="login-panel")
         self.register_panel = RegisterPanel(id="register-panel")
@@ -215,6 +220,79 @@ class ScriptureBaseballApp(App):
             rows,
         )
         self.leaderboard_panel.set_status("")
+
+    def debounce_leaderboard_refresh(self, category_id: str, mode_id: str) -> None:
+        """Schedule a debounced leaderboard refresh to avoid rapid repeated fetches."""
+        # Cancel any pending timer
+        if self._leaderboard_debounce_timer:
+            self._leaderboard_debounce_timer.cancel()
+        
+        # Increment request ID to track this refresh and ignore stale responses
+        self.session.leaderboard_request_id += 1
+        request_id = self.session.leaderboard_request_id
+        
+        # Show loading status
+        self.leaderboard_panel.set_status("Updating scores...")
+        
+        # Schedule delayed refresh in background
+        self._leaderboard_debounce_timer = threading.Timer(
+            self._leaderboard_debounce_delay,
+            lambda: self._fetch_leaderboard_in_background(request_id, category_id, mode_id)
+        )
+        self._leaderboard_debounce_timer.start()
+
+    def _fetch_leaderboard_in_background(self, request_id: int, category_id: str, mode_id: str) -> None:
+        """Fetch leaderboard data in a background thread."""
+        try:
+            if self.session.auth_token is None:
+                self.call_from_thread(self._complete_leaderboard_fetch_error, request_id, "Login is required to view leaderboards.")
+                return
+            
+            leaderboard_key = self._build_score_category_id(category_id, mode_id)
+            top_scores = self.facade.get_top(self.session.auth_token, leaderboard_key, 10).top_scores
+            my_score = self.facade.get_highscore(self.session.auth_token, leaderboard_key).highscore
+            
+            self.call_from_thread(self._complete_leaderboard_fetch, request_id, category_id, mode_id, top_scores, my_score)
+        except Exception as error:
+            self.call_from_thread(self._complete_leaderboard_fetch_error, request_id, str(error))
+
+    def _complete_leaderboard_fetch(self, request_id: int, category_id: str, mode_id: str, top_scores: list, my_score) -> None:
+        """Complete the leaderboard fetch and update UI if request is not stale."""
+        # Ignore if a newer request has been scheduled
+        if request_id != self.session.leaderboard_request_id:
+            return
+        
+        # Get human-readable names for display
+        category_name = category_id
+        mode_name = mode_id
+        for category in self.game.get_available_categories():
+            if category.get("id") == category_id:
+                category_name = str(category.get("name", category_id))
+                break
+        for mode in self.game.get_available_modes():
+            if mode.get("id") == mode_id:
+                mode_name = str(mode.get("name", mode_id))
+                break
+        
+        # Build rows
+        rows: list[str] = []
+        for index, score in enumerate(top_scores, start=1):
+            rows.append(f"{index}. {score.username} - {score.highscore}")
+        
+        # Update UI
+        self.leaderboard_panel.set_rows(
+            f"[bold]Top Scores ({category_name}: {mode_name})[/bold]\nYour Highscore: {my_score.highscore}",
+            rows,
+        )
+        self.leaderboard_panel.set_status("")
+
+    def _complete_leaderboard_fetch_error(self, request_id: int, error_message: str) -> None:
+        """Complete the leaderboard fetch with an error if request is not stale."""
+        # Ignore if a newer request has been scheduled
+        if request_id != self.session.leaderboard_request_id:
+            return
+        
+        self.leaderboard_panel.set_status(error_message)
 
     def next_round(self) -> None:
         if self.session.is_round_loading:
@@ -468,37 +546,13 @@ class ScriptureBaseballApp(App):
         return "Returned to menu."
 
     def _score_answer(self, closeness: dict) -> int:
-        scoring = self.game.get_scoring_config()
-        max_round_points: int = int(scoring["max_round_points"])
-        tiers: dict = scoring["tiers"]
-
-        if closeness.get("is_exact"):
-            base_points = max_round_points
-        else:
-            unit = str(closeness.get("unit", "book"))
-            tier = tiers.get(unit)
-            if not isinstance(tier, dict):
-                return 0
-
-            category_metrics = self.game.get_selected_category_metrics()
-            max_offsets = {
-                "verse": max(category_metrics["verse_count"] - 1, 1),
-                "chapter": max(category_metrics["chapter_count"] - 1, 1),
-                "book": max(category_metrics["book_count"] - 1, 1),
-            }
-            absolute_offset = int(closeness.get("absolute_offset", 0))
-            normalized = min(max(absolute_offset / max_offsets[unit], 0.0), 1.0)
-
-            tier_min = int(tier["min"])
-            tier_max = int(tier["max"])
-            span = tier_max - tier_min
-            base_points = int(round(tier_max - (span * normalized)))
-
-        if self.session.selected_mode_id != "endless" and self.game.get_hints_used_this_round() > 0:
-            multiplier = float(scoring["finite_hint_multiplier"])
-            base_points = int(round(base_points * multiplier))
-
-        return max(0, min(base_points, max_round_points))
+        return ScoringService.score_answer(
+            closeness,
+            self.game.get_scoring_config(),
+            self.game.get_selected_category_metrics(),
+            self.session.selected_mode_id,
+            self.game.get_hints_used_this_round(),
+        )
 
     def _format_submission_feedback(
         self,
@@ -507,47 +561,19 @@ class ScriptureBaseballApp(App):
         life_lost: bool,
         _lives_remaining: int | None,
     ) -> str:
-        correct_answer = self.game.get_correct_answer()
-        context_notes: list[str] = []
-        points_phrase = f"You earned +{points} points this round."
-
-        if self.session.selected_mode_id != "endless" and self.game.get_hints_used_this_round() > 0:
-            multiplier = float(self.game.get_scoring_config()["finite_hint_multiplier"])
-            penalty_percent = max(0.0, (1.0 - multiplier) * 100.0)
-            if penalty_percent.is_integer():
-                penalty_display = str(int(penalty_percent))
-            else:
-                penalty_display = f"{penalty_percent:.1f}"
-
-            context_notes.append(f"Hint used: {penalty_display}% point reduction")
-            points_phrase = f"You earned +{points} points this round after the hint reduction."
-        if life_lost:
-            context_notes.append("life lost")
-
-        notes_text = ""
-        if len(context_notes) > 0:
-            notes_text = " " + rich_text("(" + "; ".join(context_notes) + ")", "supporting_text", dim=True)
-
-        if closeness.get("is_exact"):
-            success_text = rich_text("Great guess!", "feedback_success")
-            return (
-                f"{success_text} Correct answer: [bold]{correct_answer}[/bold]. "
-                f"{points_phrase}{notes_text}"
-            )
-
-        distance_phrase = self._format_distance_phrase(closeness)
-        warning_text = rich_text("Close, but not exact.", "feedback_warning")
-        return (
-            f"{warning_text} Correct answer: [bold]{correct_answer}[/bold]. "
-            f"You were {distance_phrase}. {points_phrase}{notes_text}"
+        return ScoringService.format_submission_feedback(
+            closeness=closeness,
+            points=points,
+            life_lost=life_lost,
+            selected_mode_id=self.session.selected_mode_id,
+            hints_used_this_round=self.game.get_hints_used_this_round(),
+            scoring_config=self.game.get_scoring_config(),
+            correct_answer=self.game.get_correct_answer(),
+            style=lambda text, theme_key: rich_text(text, theme_key, dim=(theme_key == "supporting_text")),
         )
 
     def _format_distance_phrase(self, closeness: dict) -> str:
-        unit = str(closeness.get("unit", "book"))
-        absolute_offset = int(closeness.get("absolute_offset", 0))
-
-        unit_label = unit if absolute_offset == 1 else f"{unit}s"
-        return f"{absolute_offset} {unit_label} away"
+        return ScoringService.format_distance_phrase(closeness)
 
     def _get_mode_name(self, mode_id: str | None) -> str:
         if mode_id is None:

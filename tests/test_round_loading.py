@@ -2,7 +2,7 @@ import unittest
 from typing import Any, cast
 from unittest.mock import patch
 
-from client.app import ScriptureBaseballApp
+from client.tk_app import TkScriptureBaseballApp
 from shared.request_classes import VerseRequest
 from shared.response_classes import VerseResponse
 
@@ -100,32 +100,32 @@ class _NoopThread:
 
 
 class TestRoundLoading(unittest.TestCase):
-    def _build_app_with_stubs(self) -> tuple[ScriptureBaseballApp, _GamePanelStub, _GameStub]:
-        app = ScriptureBaseballApp()
+    def _build_app_with_stubs(self) -> tuple[TkScriptureBaseballApp, _GamePanelStub, _GameStub]:
+        app = TkScriptureBaseballApp(enable_ui=False)
         panel = _GamePanelStub()
         game = _GameStub()
         cast(Any, app).game_panel = panel
         cast(Any, app).game = game
         cast(Any, app).facade = _FacadeSuccessStub()
-        cast(Any, app)._show_only = lambda _name: None
-        cast(Any, app).call_from_thread = lambda func, *args: func(*args)
+        cast(Any, app).show_panel = lambda _name: None
+        cast(Any, app).root.after = lambda _delay, func: func()
         return app, panel, game
 
     def test_start_round_sets_loading_feedback_and_disables_controls(self) -> None:
         app, panel, _ = self._build_app_with_stubs()
 
-        with patch("client.app.threading.Thread", _NoopThread):
+        with patch("client.tk_app.threading.Thread", _NoopThread):
             app._start_round()
 
         self.assertTrue(app.session.is_round_loading)
-        self.assertEqual(panel.prompts[-1], "[dim]Selecting verse...[/dim]")
-        self.assertEqual(panel.feedback[-1], "[yellow]Selecting verse...[/yellow]")
+        self.assertEqual(panel.prompts[-1], "Selecting verse...")
+        self.assertEqual(panel.feedback[-1], "Selecting verse...")
         self.assertEqual(panel.controls[-1], ("Selecting Verse...", False, False))
 
     def test_round_fetch_success_clears_loading_and_sets_prompt(self) -> None:
         app, panel, game = self._build_app_with_stubs()
 
-        with patch("client.app.threading.Thread", _ImmediateThread):
+        with patch("client.tk_app.threading.Thread", _ImmediateThread):
             app._start_round()
 
         self.assertFalse(app.session.is_round_loading)
@@ -153,7 +153,7 @@ class TestRoundLoading(unittest.TestCase):
 
         app.handle_round_action("John 3:16")
 
-        self.assertEqual(panel.feedback[-1], "[yellow]Selecting verse...[/yellow]")
+        self.assertEqual(panel.feedback[-1], "Selecting verse...")
 
 
 if __name__ == "__main__":
