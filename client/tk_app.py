@@ -80,7 +80,7 @@ class TkLoginPanel(ttk.Frame):
             style="Accent.TButton",
             width=TK_SIZES["button_width"],
             command=lambda: on_submit(self.username_var.get().strip(), self.password_var.get()),
-        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=4, column=0, pady=(0, 8))
         ttk.Button(
             form,
             text="Need an account? Register",
@@ -90,7 +90,6 @@ class TkLoginPanel(ttk.Frame):
         ).grid(
             row=5,
             column=0,
-            sticky="w",
         )
 
         self.status_var = tk.StringVar(value="")
@@ -172,7 +171,7 @@ class TkRegisterPanel(ttk.Frame):
                 self.email_var.get().strip(),
                 self.password_var.get(),
             ),
-        ).grid(row=6, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=6, column=0, pady=(0, 8))
         ttk.Button(
             form,
             text="Have an account? Login",
@@ -182,7 +181,6 @@ class TkRegisterPanel(ttk.Frame):
         ).grid(
             row=7,
             column=0,
-            sticky="w",
         )
 
         self.status_var = tk.StringVar(value="")
@@ -287,7 +285,7 @@ class TkSetupPanel(ttk.Frame):
                 self.get_selected_mode_id() or "",
                 self.get_selected_category_id() or "",
             ),
-        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=4, column=0, pady=(0, 8))
         ttk.Button(
             form,
             text="View Leaderboards",
@@ -297,13 +295,11 @@ class TkSetupPanel(ttk.Frame):
         ).grid(
             row=5,
             column=0,
-            sticky="w",
             pady=(0, 8),
         )
-        ttk.Button(form, text="Logout", style="Danger.TButton", command=on_logout).grid(
+        ttk.Button(form, text="Logout", style="Danger.TButton", width=TK_SIZES["button_width"], command=on_logout).grid(
             row=6,
             column=0,
-            sticky="w",
         )
 
         self.status_var = tk.StringVar(value="")
@@ -407,11 +403,10 @@ class TkLeaderboardPanel(ttk.Frame):
             style="Accent.TButton",
             width=TK_SIZES["button_width"],
             command=lambda: on_refresh(self.get_selected_category_id() or "", self.get_selected_mode_id() or ""),
-        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=4, column=0, pady=(0, 8))
         ttk.Button(form, text="Back to Menu", style="Secondary.TButton", width=TK_SIZES["button_width"], command=on_back).grid(
             row=5,
             column=0,
-            sticky="w",
         )
 
         self.status_var = tk.StringVar(value="")
