@@ -323,8 +323,9 @@ class Game:
 
 		mode: dict[str, Any] | None = self._selected_mode
 		if mode is not None and mode["type"] == "endless":
-			if self._endless_hints_remaining is None or self._endless_hints_remaining <= 0:
-				raise ValueError("No hints remaining")
+			if self._hints_used_this_round == 0:
+				if self._endless_hints_remaining is None or self._endless_hints_remaining <= 0:
+					raise ValueError("No hints remaining")
 		elif mode is not None and mode["type"] == "finite":
 			if self._hints_used_this_round >= mode.get("hints_per_round", 1):
 				raise ValueError("No hints remaining for this round")
@@ -338,9 +339,11 @@ class Game:
 			raise ValueError("Selected verse is out of bounds for current chapter data")
 
 		if mode is not None and mode["type"] == "endless":
-			if self._endless_hints_remaining is None:
-				raise ValueError("No hints remaining")
-			self._endless_hints_remaining -= 1
+			if self._hints_used_this_round == 0:
+				if self._endless_hints_remaining is None:
+					raise ValueError("No hints remaining")
+				self._endless_hints_remaining -= 1
+			self._hints_used_this_round = 1
 		elif mode is not None and mode["type"] == "finite":
 			self._hints_used_this_round += 1
 
