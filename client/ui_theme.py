@@ -49,7 +49,8 @@ TK_SIZES: dict[str, int] = {
     "container_padding": 16,
     "field_width": 38,
     "answer_width": 44,
-    "wrap_width": 860,
+    "button_width": 24,
+    "wrap_width": 640,
     "button_padding_x": 14,
     "button_padding_y": 8,
 }
