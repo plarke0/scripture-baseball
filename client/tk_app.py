@@ -38,46 +38,58 @@ class TkLoginPanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(3, weight=1)
 
         ttk.Label(self, text="Scripture Baseball", style="Section.TLabel").grid(
             row=0,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(0, 12),
         )
 
         form = ttk.Frame(self)
-        form.grid(row=1, column=0, sticky="w")
+        form.grid(row=1, column=0, sticky="ew")
+        form.columnconfigure(0, weight=0)
+        form.columnconfigure(1, weight=1)
 
         ttk.Label(form, text="Username").grid(row=0, column=0, sticky="w")
         self.username_var = tk.StringVar()
         username_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.username_var)
-        username_entry.grid(row=1, column=0, sticky="w", pady=(0, 8))
+        username_entry.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
 
-        ttk.Label(form, text="Password").grid(row=2, column=0, sticky="w")
+        ttk.Label(form, text="Password").grid(row=1, column=0, sticky="w")
         self.password_var = tk.StringVar()
         password_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.password_var, show="*")
-        password_entry.grid(row=3, column=0, sticky="w", pady=(0, 12))
+        password_entry.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
 
         ttk.Button(
             form,
             text="Login",
             style="Accent.TButton",
             command=lambda: on_submit(self.username_var.get().strip(), self.password_var.get()),
-        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 8))
         ttk.Button(form, text="Need an account? Register", style="Secondary.TButton", command=on_to_register).grid(
-            row=5,
+            row=3,
             column=0,
-            sticky="w",
+            columnspan=2,
+            sticky="ew",
         )
 
         self.status_var = tk.StringVar(value="")
-        ttk.Label(self, textvariable=self.status_var, wraplength=TK_SIZES["wrap_width"], justify="left", style="BodyMuted.TLabel").grid(
+        ttk.Label(
+            self,
+            textvariable=self.status_var,
+            wraplength=TK_SIZES["wrap_width"],
+            justify="left",
+            style="BodyMuted.TLabel",
+        ).grid(
             row=2,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(12, 0),
         )
+
+        ttk.Frame(self).grid(row=3, column=0, sticky="nsew")
 
         username_entry.focus_set()
         username_entry.bind("<Return>", lambda _event: on_submit(self.username_var.get().strip(), self.password_var.get()))
@@ -100,31 +112,34 @@ class TkRegisterPanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(3, weight=1)
 
         ttk.Label(self, text="Create Account", style="Section.TLabel").grid(
             row=0,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(0, 12),
         )
 
         form = ttk.Frame(self)
-        form.grid(row=1, column=0, sticky="w")
+        form.grid(row=1, column=0, sticky="ew")
+        form.columnconfigure(0, weight=0)
+        form.columnconfigure(1, weight=1)
 
         ttk.Label(form, text="Username").grid(row=0, column=0, sticky="w")
         self.username_var = tk.StringVar()
         username_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.username_var)
-        username_entry.grid(row=1, column=0, sticky="w", pady=(0, 8))
+        username_entry.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
 
-        ttk.Label(form, text="Email").grid(row=2, column=0, sticky="w")
+        ttk.Label(form, text="Email").grid(row=1, column=0, sticky="w")
         self.email_var = tk.StringVar()
         email_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.email_var)
-        email_entry.grid(row=3, column=0, sticky="w", pady=(0, 8))
+        email_entry.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
 
-        ttk.Label(form, text="Password").grid(row=4, column=0, sticky="w")
+        ttk.Label(form, text="Password").grid(row=2, column=0, sticky="w")
         self.password_var = tk.StringVar()
         password_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.password_var, show="*")
-        password_entry.grid(row=5, column=0, sticky="w", pady=(0, 12))
+        password_entry.grid(row=2, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
 
         ttk.Button(
             form,
@@ -135,20 +150,29 @@ class TkRegisterPanel(ttk.Frame):
                 self.email_var.get().strip(),
                 self.password_var.get(),
             ),
-        ).grid(row=6, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, 8))
         ttk.Button(form, text="Have an account? Login", style="Secondary.TButton", command=on_to_login).grid(
-            row=7,
+            row=4,
             column=0,
-            sticky="w",
+            columnspan=2,
+            sticky="ew",
         )
 
         self.status_var = tk.StringVar(value="")
-        ttk.Label(self, textvariable=self.status_var, wraplength=TK_SIZES["wrap_width"], justify="left", style="BodyMuted.TLabel").grid(
+        ttk.Label(
+            self,
+            textvariable=self.status_var,
+            wraplength=TK_SIZES["wrap_width"],
+            justify="left",
+            style="BodyMuted.TLabel",
+        ).grid(
             row=2,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(12, 0),
         )
+
+        ttk.Frame(self).grid(row=3, column=0, sticky="nsew")
 
         username_entry.focus_set()
         username_entry.bind(
@@ -195,6 +219,7 @@ class TkSetupPanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(3, weight=1)
 
         self._cached_mode_options: tuple[str, ...] | None = None
         self._cached_category_options: tuple[str, ...] | None = None
@@ -204,22 +229,24 @@ class TkSetupPanel(ttk.Frame):
         ttk.Label(self, text="Choose Mode and Category", style="Section.TLabel").grid(
             row=0,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(0, 12),
         )
 
         form = ttk.Frame(self)
-        form.grid(row=1, column=0, sticky="w")
+        form.grid(row=1, column=0, sticky="ew")
+        form.columnconfigure(0, weight=0)
+        form.columnconfigure(1, weight=1)
 
         ttk.Label(form, text="Mode").grid(row=0, column=0, sticky="w")
         self.mode_var = tk.StringVar(value="")
         self.mode_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.mode_var)
-        self.mode_combo.grid(row=1, column=0, sticky="w", pady=(0, 8))
+        self.mode_combo.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
 
-        ttk.Label(form, text="Category").grid(row=2, column=0, sticky="w")
+        ttk.Label(form, text="Category").grid(row=1, column=0, sticky="w")
         self.category_var = tk.StringVar(value="")
         self.category_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.category_var)
-        self.category_combo.grid(row=3, column=0, sticky="w", pady=(0, 12))
+        self.category_combo.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
 
         ttk.Button(
             form,
@@ -229,22 +256,36 @@ class TkSetupPanel(ttk.Frame):
                 self.get_selected_mode_id() or "",
                 self.get_selected_category_id() or "",
             ),
-        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
+        ).grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 8))
         ttk.Button(form, text="View Leaderboards", style="Secondary.TButton", command=on_view_leaderboards).grid(
-            row=5,
+            row=3,
             column=0,
-            sticky="w",
+            columnspan=2,
+            sticky="ew",
             pady=(0, 8),
         )
-        ttk.Button(form, text="Logout", style="Danger.TButton", command=on_logout).grid(row=6, column=0, sticky="w")
+        ttk.Button(form, text="Logout", style="Danger.TButton", command=on_logout).grid(
+            row=4,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+        )
 
         self.status_var = tk.StringVar(value="")
-        ttk.Label(self, textvariable=self.status_var, wraplength=TK_SIZES["wrap_width"], justify="left", style="BodyMuted.TLabel").grid(
+        ttk.Label(
+            self,
+            textvariable=self.status_var,
+            wraplength=TK_SIZES["wrap_width"],
+            justify="left",
+            style="BodyMuted.TLabel",
+        ).grid(
             row=2,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(12, 0),
         )
+
+        ttk.Frame(self).grid(row=3, column=0, sticky="nsew")
 
     def load_options(self, modes: list[dict], categories: list[dict]) -> None:
         mode_sig = tuple(sorted(str(mode["id"]) for mode in modes))
@@ -293,6 +334,7 @@ class TkLeaderboardPanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(3, weight=1)
 
         self._cached_mode_options: tuple[str, ...] | None = None
         self._cached_category_options: tuple[str, ...] | None = None
@@ -302,36 +344,49 @@ class TkLeaderboardPanel(ttk.Frame):
         ttk.Label(self, text="Leaderboards", style="Section.TLabel").grid(
             row=0,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(0, 12),
         )
 
         form = ttk.Frame(self)
-        form.grid(row=1, column=0, sticky="w")
+        form.grid(row=1, column=0, sticky="ew")
+        form.columnconfigure(0, weight=0)
+        form.columnconfigure(1, weight=1)
 
         ttk.Label(form, text="Mode").grid(row=0, column=0, sticky="w")
         self.mode_var = tk.StringVar(value="")
         self.mode_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.mode_var)
-        self.mode_combo.grid(row=1, column=0, sticky="w", pady=(0, 8))
+        self.mode_combo.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
 
-        ttk.Label(form, text="Category").grid(row=2, column=0, sticky="w")
+        ttk.Label(form, text="Category").grid(row=1, column=0, sticky="w")
         self.category_var = tk.StringVar(value="")
         self.category_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.category_var)
-        self.category_combo.grid(row=3, column=0, sticky="w", pady=(0, 12))
+        self.category_combo.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
 
         ttk.Button(
             form,
             text="Refresh Leaderboard",
             style="Accent.TButton",
             command=lambda: on_refresh(self.get_selected_category_id() or "", self.get_selected_mode_id() or ""),
-        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
-        ttk.Button(form, text="Back to Menu", style="Secondary.TButton", command=on_back).grid(row=5, column=0, sticky="w")
+        ).grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        ttk.Button(form, text="Back to Menu", style="Secondary.TButton", command=on_back).grid(
+            row=3,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+        )
 
         self.status_var = tk.StringVar(value="")
-        ttk.Label(self, textvariable=self.status_var, wraplength=TK_SIZES["wrap_width"], justify="left", style="BodyMuted.TLabel").grid(
+        ttk.Label(
+            self,
+            textvariable=self.status_var,
+            wraplength=TK_SIZES["wrap_width"],
+            justify="left",
+            style="BodyMuted.TLabel",
+        ).grid(
             row=2,
             column=0,
-            sticky="w",
+            sticky="ew",
             pady=(12, 6),
         )
 
@@ -339,7 +394,7 @@ class TkLeaderboardPanel(ttk.Frame):
         ttk.Label(self, textvariable=self.content_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(
             row=3,
             column=0,
-            sticky="w",
+            sticky="nsew",
         )
 
         self.mode_combo.bind(
@@ -410,8 +465,11 @@ class TkGamePanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(9, weight=1)
 
-        ttk.Label(self, text="Game", style="Section.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 10))
+        ttk.Label(self, text="Game", style="Section.TLabel").grid(row=0, column=0, sticky="ew", pady=(0, 10))
 
         self.round_info_var = tk.StringVar(value="")
         self.score_info_var = tk.StringVar(value="")
@@ -421,37 +479,66 @@ class TkGamePanel(ttk.Frame):
         self.hint_var = tk.StringVar(value="")
         self.feedback_var = tk.StringVar(value="")
 
-        ttk.Label(self, textvariable=self.round_info_var).grid(row=1, column=0, sticky="w")
-        ttk.Label(self, textvariable=self.score_info_var).grid(row=2, column=0, sticky="w")
-        ttk.Label(self, textvariable=self.lives_info_var).grid(row=3, column=0, sticky="w")
-        ttk.Label(self, textvariable=self.hints_info_var).grid(row=4, column=0, sticky="w", pady=(0, 8))
+        metrics = ttk.Frame(self)
+        metrics.grid(row=1, column=0, sticky="ew", pady=(0, 8))
+        for col in range(4):
+            metrics.columnconfigure(col, weight=1)
 
-        ttk.Label(self, text="Verse to Guess", style="BodyMuted.TLabel").grid(row=5, column=0, sticky="w")
-        ttk.Label(self, textvariable=self.prompt_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(row=6, column=0, sticky="w", pady=(0, 8))
+        ttk.Label(metrics, textvariable=self.round_info_var).grid(row=0, column=0, sticky="w")
+        ttk.Label(metrics, textvariable=self.score_info_var).grid(row=0, column=1, sticky="w")
+        ttk.Label(metrics, textvariable=self.lives_info_var).grid(row=0, column=2, sticky="w")
+        ttk.Label(metrics, textvariable=self.hints_info_var).grid(row=0, column=3, sticky="w")
+
+        ttk.Label(self, text="Verse to Guess", style="BodyMuted.TLabel").grid(row=2, column=0, sticky="w")
+        ttk.Label(self, textvariable=self.prompt_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(
+            row=3,
+            column=0,
+            sticky="nsew",
+            pady=(0, 8),
+        )
 
         self.hint_label = ttk.Label(self, text="Hint Verses", style="BodyMuted.TLabel")
-        self.hint_label.grid(row=7, column=0, sticky="w")
+        self.hint_label.grid(row=4, column=0, sticky="w")
         self.hint_output = ttk.Label(self, textvariable=self.hint_var, wraplength=TK_SIZES["wrap_width"], justify="left")
-        self.hint_output.grid(row=8, column=0, sticky="w", pady=(0, 8))
+        self.hint_output.grid(row=5, column=0, sticky="nsew", pady=(0, 8))
 
-        ttk.Label(self, textvariable=self.feedback_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(row=9, column=0, sticky="w", pady=(0, 8))
+        ttk.Label(self, textvariable=self.feedback_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(
+            row=6,
+            column=0,
+            sticky="ew",
+            pady=(0, 8),
+        )
 
         self.answer_var = tk.StringVar(value="")
         answer_entry = ttk.Entry(self, width=TK_SIZES["answer_width"], textvariable=self.answer_var)
-        answer_entry.grid(row=10, column=0, sticky="w", pady=(0, 8))
+        answer_entry.grid(row=7, column=0, sticky="ew", pady=(0, 8))
+
+        actions = ttk.Frame(self)
+        actions.grid(row=8, column=0, sticky="ew")
+        actions.columnconfigure(0, weight=1)
+        actions.columnconfigure(1, weight=1)
+        actions.columnconfigure(2, weight=1)
 
         self.action_button = ttk.Button(
-            self,
+            actions,
             text="Submit Answer",
             style="Accent.TButton",
             command=lambda: on_round_action(self.answer_var.get().strip()),
         )
-        self.action_button.grid(row=11, column=0, sticky="w", pady=(0, 8))
+        self.action_button.grid(row=0, column=0, sticky="ew", pady=(0, 8), padx=(0, 6))
 
-        self.hint_button = ttk.Button(self, text="Get Hint", style="Secondary.TButton", command=on_hint)
-        self.hint_button.grid(row=12, column=0, sticky="w", pady=(0, 8))
+        self.hint_button = ttk.Button(actions, text="Get Hint", style="Secondary.TButton", command=on_hint)
+        self.hint_button.grid(row=0, column=1, sticky="ew", pady=(0, 8), padx=6)
 
-        ttk.Button(self, text="Back to Menu", style="Secondary.TButton", command=on_back_to_menu).grid(row=13, column=0, sticky="w")
+        ttk.Button(actions, text="Back to Menu", style="Secondary.TButton", command=on_back_to_menu).grid(
+            row=0,
+            column=2,
+            sticky="ew",
+            pady=(0, 8),
+            padx=(6, 0),
+        )
+
+        ttk.Frame(self).grid(row=9, column=0, sticky="nsew")
 
         answer_entry.bind("<Return>", lambda _event: on_round_action(self.answer_var.get().strip()))
         self.set_hint([], None)
@@ -516,16 +603,34 @@ class TkResultsPanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(5, weight=1)
 
-        ttk.Label(self, text="Game Complete", style="Section.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 10))
+        ttk.Label(self, text="Game Complete", style="Section.TLabel").grid(row=0, column=0, sticky="ew", pady=(0, 10))
         self.final_score_var = tk.StringVar(value="")
-        ttk.Label(self, textvariable=self.final_score_var).grid(row=1, column=0, sticky="w")
+        ttk.Label(self, textvariable=self.final_score_var).grid(row=1, column=0, sticky="ew")
 
         self.message_var = tk.StringVar(value="")
-        ttk.Label(self, textvariable=self.message_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(row=2, column=0, sticky="w", pady=(8, 10))
+        ttk.Label(self, textvariable=self.message_var, wraplength=TK_SIZES["wrap_width"], justify="left").grid(
+            row=2,
+            column=0,
+            sticky="nsew",
+            pady=(8, 10),
+        )
 
-        ttk.Button(self, text="Play Again", style="Accent.TButton", command=on_play_again).grid(row=3, column=0, sticky="w", pady=(0, 8))
-        ttk.Button(self, text="Back to Menu", style="Secondary.TButton", command=on_back_to_menu).grid(row=4, column=0, sticky="w")
+        ttk.Button(self, text="Play Again", style="Accent.TButton", command=on_play_again).grid(
+            row=3,
+            column=0,
+            sticky="ew",
+            pady=(0, 8),
+        )
+        ttk.Button(self, text="Back to Menu", style="Secondary.TButton", command=on_back_to_menu).grid(
+            row=4,
+            column=0,
+            sticky="ew",
+        )
+
+        ttk.Frame(self).grid(row=5, column=0, sticky="nsew")
 
     def set_results(self, final_score: int, message: str) -> None:
         self.final_score_var.set(f"Final Score: {final_score}")
@@ -541,17 +646,26 @@ class TkConfirmExitPanel(ttk.Frame):
     ) -> None:
         super().__init__(parent, padding=TK_SIZES["panel_padding"])
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(4, weight=1)
 
-        ttk.Label(self, text="Leave Current Game?", style="Section.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 10))
+        ttk.Label(self, text="Leave Current Game?", style="Section.TLabel").grid(row=0, column=0, sticky="ew", pady=(0, 10))
         ttk.Label(
             self,
             text="If you leave now, your current score will be submitted and you will return to the menu.",
             wraplength=TK_SIZES["wrap_width"],
             justify="left",
-        ).grid(row=1, column=0, sticky="w", pady=(0, 10))
+        ).grid(row=1, column=0, sticky="nsew", pady=(0, 10))
 
-        ttk.Button(self, text="Confirm Leave", style="Danger.TButton", command=on_confirm).grid(row=2, column=0, sticky="w", pady=(0, 8))
-        ttk.Button(self, text="Cancel", style="Secondary.TButton", command=on_cancel).grid(row=3, column=0, sticky="w")
+        ttk.Button(self, text="Confirm Leave", style="Danger.TButton", command=on_confirm).grid(
+            row=2,
+            column=0,
+            sticky="ew",
+            pady=(0, 8),
+        )
+        ttk.Button(self, text="Cancel", style="Secondary.TButton", command=on_cancel).grid(row=3, column=0, sticky="ew")
+
+        ttk.Frame(self).grid(row=4, column=0, sticky="nsew")
 
 
 class TkScriptureBaseballApp:
