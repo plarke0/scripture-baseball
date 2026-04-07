@@ -1,5 +1,5 @@
-from client.app import ScriptureBaseballApp
+from client.tk_app import TkScriptureBaseballApp
 
 
 if __name__ == "__main__":
-    ScriptureBaseballApp().run()
+    TkScriptureBaseballApp().run()

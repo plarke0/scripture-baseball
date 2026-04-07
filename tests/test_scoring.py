@@ -1,11 +1,11 @@
 import unittest
 
-from client.app import ScriptureBaseballApp
+from client.tk_app import TkScriptureBaseballApp
 
 
 class TestScoring(unittest.TestCase):
-    def _build_app(self, mode_id: str, category_id: str) -> ScriptureBaseballApp:
-        app = ScriptureBaseballApp()
+    def _build_app(self, mode_id: str, category_id: str) -> TkScriptureBaseballApp:
+        app = TkScriptureBaseballApp(enable_ui=False)
         app.game.select_mode(mode_id)
         app.game.select_category(category_id)
         app.game.start_game()
@@ -50,7 +50,7 @@ class TestScoring(unittest.TestCase):
 
     def test_leaderboard_key_uses_category_and_mode(self) -> None:
         self.assertEqual(
-            ScriptureBaseballApp._build_score_category_id("new_testament", "finite_5"),
+            TkScriptureBaseballApp._build_score_category_id("new_testament", "finite_5"),
             "new_testament-finite_5",
         )
 

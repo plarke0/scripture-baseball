@@ -1,7 +1,7 @@
 import unittest
 from typing import Any, cast
 
-from client.app import ScriptureBaseballApp
+from client.tk_app import TkScriptureBaseballApp
 
 
 class _PanelStub:
@@ -67,8 +67,8 @@ class _FacadeRegisterSuccess:
 
 
 class TestAuthErrorHandling(unittest.TestCase):
-    def _build_app_with_stubs(self) -> tuple[ScriptureBaseballApp, _PanelStub, _PanelStub]:
-        app = ScriptureBaseballApp()
+    def _build_app_with_stubs(self) -> tuple[TkScriptureBaseballApp, _PanelStub, _PanelStub]:
+        app = TkScriptureBaseballApp(enable_ui=False)
         login_panel = _PanelStub()
         register_panel = _PanelStub()
         cast(Any, app).login_panel = login_panel

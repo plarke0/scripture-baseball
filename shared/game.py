@@ -31,6 +31,8 @@ class Game:
 		self._categories_by_id: dict[str, dict[str, Any]] = {}
 		self._scoring_config: dict[str, Any] = {}
 		self._load_game_settings()
+		self._available_modes: tuple[dict[str, Any], ...] = tuple(self._modes_by_id.values())
+		self._available_categories: tuple[dict[str, Any], ...] = tuple(self._categories_by_id.values())
 
 		self._selected_mode_id: str | None = None
 		self._selected_category_id: str | None = None
@@ -57,10 +59,10 @@ class Game:
 		return list(self._volumes_by_id.keys())
 
 	def get_available_modes(self) -> list[dict[str, Any]]:
-		return [dict(mode) for mode in self._modes_by_id.values()]
+		return list(self._available_modes)
 
 	def get_available_categories(self) -> list[dict[str, Any]]:
-		return [dict(category) for category in self._categories_by_id.values()]
+		return list(self._available_categories)
 
 	def get_round_number(self) -> int:
 		return self._round_number
@@ -321,8 +323,9 @@ class Game:
 
 		mode: dict[str, Any] | None = self._selected_mode
 		if mode is not None and mode["type"] == "endless":
-			if self._endless_hints_remaining is None or self._endless_hints_remaining <= 0:
-				raise ValueError("No hints remaining")
+			if self._hints_used_this_round == 0:
+				if self._endless_hints_remaining is None or self._endless_hints_remaining <= 0:
+					raise ValueError("No hints remaining")
 		elif mode is not None and mode["type"] == "finite":
 			if self._hints_used_this_round >= mode.get("hints_per_round", 1):
 				raise ValueError("No hints remaining for this round")
@@ -336,9 +339,11 @@ class Game:
 			raise ValueError("Selected verse is out of bounds for current chapter data")
 
 		if mode is not None and mode["type"] == "endless":
-			if self._endless_hints_remaining is None:
-				raise ValueError("No hints remaining")
-			self._endless_hints_remaining -= 1
+			if self._hints_used_this_round == 0:
+				if self._endless_hints_remaining is None:
+					raise ValueError("No hints remaining")
+				self._endless_hints_remaining -= 1
+			self._hints_used_this_round = 1
 		elif mode is not None and mode["type"] == "finite":
 			self._hints_used_this_round += 1
 

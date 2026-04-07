@@ -21,3 +21,5 @@ class ClientSessionState:
     feedback: str = ""
     is_round_loading: bool = False
     round_request_id: int = 0
+    leaderboard_request_id: int = 0
+    score_submitted: bool = False

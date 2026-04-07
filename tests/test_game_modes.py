@@ -18,6 +18,21 @@ class TestGameModes(unittest.TestCase):
 		self.assertEqual(selected.volume, "newtestament")
 		self.assertIn(selected.book, {"matthew", "mark", "luke", "john"})
 
+	def test_available_dropdown_sources_are_cached_safely(self) -> None:
+		game = Game()
+
+		first_modes = game.get_available_modes()
+		first_categories = game.get_available_categories()
+		first_modes.append({"id": "temporary", "name": "Temporary"})
+		first_categories.clear()
+
+		second_modes = game.get_available_modes()
+		second_categories = game.get_available_categories()
+
+		self.assertNotIn({"id": "temporary", "name": "Temporary"}, second_modes)
+		self.assertGreater(len(second_modes), 0)
+		self.assertGreater(len(second_categories), 0)
+
 	def test_endless_life_loss_on_wrong_book(self) -> None:
 		game = Game()
 		game.select_mode("endless")
@@ -50,6 +65,28 @@ class TestGameModes(unittest.TestCase):
 		self.assertEqual(game.get_hints_remaining(), 0)
 		with self.assertRaises(ValueError):
 			game.get_hint()
+
+	def test_endless_hint_consumes_once_per_round(self) -> None:
+		game = Game()
+		game.select_mode("endless")
+		game.select_category("new_testament")
+		game.start_game()
+		game.start_round()
+		game.set_chapter_data([f"verse {index}" for index in range(1, 200)])
+
+		starting_hints = game.get_hints_remaining()
+		self.assertIsNotNone(starting_hints)
+		if starting_hints is None:
+			self.fail("Endless mode should report remaining hints")
+
+		game.get_hint()
+		hints_after_first = game.get_hints_remaining()
+		game.get_hint()
+		hints_after_second = game.get_hints_remaining()
+
+		self.assertEqual(hints_after_first, starting_hints - 1)
+		self.assertEqual(hints_after_second, hints_after_first)
+		self.assertEqual(game.get_hints_used_this_round(), 1)
 
 	def test_final_score_accumulates(self) -> None:
 		game = Game()
