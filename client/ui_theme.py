@@ -27,7 +27,7 @@ TK_COLORS: dict[str, str] = {
     "panel": "#fffdf8",
     "surface": "#efe5cf",
     "text": "#2f2616",
-    "muted_text": "#5d503e",
+    "muted_text": "#8a7d6a",
     "accent": "#1f5c3f",
     "accent_active": "#184a33",
     "secondary": "#d7c7a3",
@@ -78,6 +78,13 @@ def configure_tk_theme(root: tk.Tk) -> None:
         foreground=TK_COLORS["text"],
         bordercolor=TK_COLORS["border"],
         insertcolor=TK_COLORS["text"],
+    )
+    style.configure(
+        "Placeholder.TEntry",
+        fieldbackground=TK_COLORS["panel"],
+        foreground=TK_COLORS["muted_text"],
+        bordercolor=TK_COLORS["border"],
+        insertcolor=TK_COLORS["muted_text"],
     )
     style.configure(
         "TCombobox",

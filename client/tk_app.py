@@ -560,9 +560,14 @@ class TkGamePanel(ttk.Frame):
         )
         _bind_dynamic_wrap(feedback_label)
 
+        self._answer_placeholder = "Book Chapter:Verse (e.g., John 3:16)"
+        self._answer_placeholder_active = False
         self.answer_var = tk.StringVar(value="")
-        answer_entry = ttk.Entry(self, width=TK_SIZES["answer_width"], textvariable=self.answer_var)
-        answer_entry.grid(row=7, column=1, sticky="ew", pady=(0, 8))
+        self.answer_entry = ttk.Entry(self, width=TK_SIZES["answer_width"], textvariable=self.answer_var)
+        self.answer_entry.grid(row=7, column=1, sticky="ew", pady=(0, 8))
+        self.answer_entry.bind("<FocusIn>", self._handle_answer_focus_in)
+        self.answer_entry.bind("<FocusOut>", self._handle_answer_focus_out)
+        self._show_answer_placeholder()
 
         actions = ttk.Frame(self)
         actions.grid(row=8, column=1, sticky="")
@@ -572,7 +577,7 @@ class TkGamePanel(ttk.Frame):
             text="Submit Answer",
             style="Accent.TButton",
             width=18,
-            command=lambda: on_round_action(self.answer_var.get().strip()),
+            command=lambda: on_round_action(self._get_answer_submission_text()),
         )
         self.action_button.grid(row=0, column=0, sticky="", pady=(0, 8), padx=(0, 6))
 
@@ -589,7 +594,7 @@ class TkGamePanel(ttk.Frame):
 
         ttk.Frame(self).grid(row=9, column=1, sticky="nsew")
 
-        answer_entry.bind("<Return>", lambda _event: on_round_action(self.answer_var.get().strip()))
+        self.answer_entry.bind("<Return>", lambda _event: on_round_action(self._get_answer_submission_text()))
         self.set_hint([], None)
 
     def set_round_state(
@@ -631,7 +636,29 @@ class TkGamePanel(ttk.Frame):
         self.feedback_var.set(feedback_text)
 
     def clear_answer(self) -> None:
-        self.answer_var.set("")
+        self._show_answer_placeholder()
+
+    def _get_answer_submission_text(self) -> str:
+        if self._answer_placeholder_active:
+            return ""
+        return self.answer_var.get().strip()
+
+    def _show_answer_placeholder(self) -> None:
+        self._answer_placeholder_active = True
+        self.answer_entry.configure(style="Placeholder.TEntry")
+        self.answer_var.set(self._answer_placeholder)
+
+    def _handle_answer_focus_in(self, _event: tk.Event) -> None:
+        if self._answer_placeholder_active:
+            self._answer_placeholder_active = False
+            self.answer_entry.configure(style="TEntry")
+            self.answer_var.set("")
+
+    def _handle_answer_focus_out(self, _event: tk.Event) -> None:
+        if len(self.answer_var.get().strip()) == 0:
+            self._show_answer_placeholder()
+            return
+        self.answer_entry.configure(style="TEntry")
 
     def set_controls(self, action_label: str, action_enabled: bool, hint_enabled: bool) -> None:
         self.action_button.configure(text=action_label)
