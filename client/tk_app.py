@@ -53,7 +53,7 @@ class TkLoginPanel(ttk.Frame):
         self.columnconfigure(2, weight=1)
         self.rowconfigure(3, weight=1)
 
-        ttk.Label(self, text="Scripture Baseball", style="Section.TLabel").grid(
+        ttk.Label(self, text="Login", style="Section.TLabel").grid(
             row=0,
             column=1,
             sticky="ew",
@@ -255,7 +255,7 @@ class TkSetupPanel(ttk.Frame):
         self._mode_labels: dict[str, str] = {}
         self._category_labels: dict[str, str] = {}
 
-        ttk.Label(self, text="Choose Mode and Category", style="Section.TLabel").grid(
+        ttk.Label(self, text="Main Menu", style="Section.TLabel").grid(
             row=0,
             column=1,
             sticky="ew",
@@ -508,7 +508,8 @@ class TkGamePanel(ttk.Frame):
         self.rowconfigure(5, weight=1)
         self.rowconfigure(9, weight=1)
 
-        ttk.Label(self, text="Game", style="Section.TLabel").grid(row=0, column=1, sticky="ew", pady=(0, 10))
+        self.title_var = tk.StringVar(value="Game")
+        ttk.Label(self, textvariable=self.title_var, style="Section.TLabel").grid(row=0, column=1, sticky="ew", pady=(0, 10))
 
         self.round_info_var = tk.StringVar(value="")
         self.score_info_var = tk.StringVar(value="")
@@ -604,6 +605,9 @@ class TkGamePanel(ttk.Frame):
         self.score_info_var.set(f"Points: {score}")
         self.lives_info_var.set(f"Lives: {lives_remaining if lives_remaining is not None else '--'}" if is_endless else "")
         self.hints_info_var.set(f"Hints Remaining: {hints_remaining if hints_remaining is not None else '--'}" if is_endless else "")
+
+    def set_title(self, title: str) -> None:
+        self.title_var.set(title)
 
     def set_prompt(self, prompt_text: str) -> None:
         self.prompt_var.set(prompt_text)
@@ -760,13 +764,10 @@ class TkScriptureBaseballApp:
         container = ttk.Frame(self.root, padding=TK_SIZES["container_padding"])
         container.grid(row=0, column=0, sticky="nsew")
         container.columnconfigure(0, weight=1)
-        container.rowconfigure(1, weight=1)
-
-        title = ttk.Label(container, text="Scripture Baseball", style="Title.TLabel")
-        title.grid(row=0, column=0, sticky="w", pady=(0, 10))
+        container.rowconfigure(0, weight=1)
 
         panel_host = ttk.Frame(container)
-        panel_host.grid(row=1, column=0, sticky="nsew")
+        panel_host.grid(row=0, column=0, sticky="nsew")
         panel_host.columnconfigure(0, weight=1)
         panel_host.rowconfigure(0, weight=1)
 
@@ -934,6 +935,11 @@ class TkScriptureBaseballApp:
         if not mode_id or not category_id:
             self.setup_panel.set_status("Select a mode and category before starting.")
             return
+
+        if self.game_panel is not None:
+            mode_name = self._get_mode_name(mode_id)
+            category_name = self._get_category_name(category_id)
+            self.game_panel.set_title(f"{category_name} | {mode_name}")
 
         self.session.selected_mode_id = mode_id
         self.session.selected_category_id = category_id
@@ -1312,6 +1318,14 @@ class TkScriptureBaseballApp:
             if mode.get("id") == mode_id:
                 return str(mode.get("name", mode_id))
         return mode_id
+
+    def _get_category_name(self, category_id: str | None) -> str:
+        if category_id is None:
+            return "this category"
+        for category in self.game.get_available_categories():
+            if category.get("id") == category_id:
+                return str(category.get("name", category_id))
+        return category_id
 
     @staticmethod
     def _build_score_category_id(category_id: str, mode_id: str) -> str:
