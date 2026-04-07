@@ -62,18 +62,17 @@ class TkLoginPanel(ttk.Frame):
 
         form = ttk.Frame(self)
         form.grid(row=1, column=1, sticky="ew")
-        form.columnconfigure(0, weight=0)
-        form.columnconfigure(1, weight=1)
+        form.columnconfigure(0, weight=1)
 
         ttk.Label(form, text="Username").grid(row=0, column=0, sticky="w")
         self.username_var = tk.StringVar()
         username_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.username_var)
-        username_entry.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
+        username_entry.grid(row=1, column=0, sticky="ew", pady=(0, 8))
 
-        ttk.Label(form, text="Password").grid(row=1, column=0, sticky="w")
+        ttk.Label(form, text="Password").grid(row=2, column=0, sticky="w")
         self.password_var = tk.StringVar()
         password_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.password_var, show="*")
-        password_entry.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
+        password_entry.grid(row=3, column=0, sticky="ew", pady=(0, 12))
 
         ttk.Button(
             form,
@@ -81,7 +80,7 @@ class TkLoginPanel(ttk.Frame):
             style="Accent.TButton",
             width=TK_SIZES["button_width"],
             command=lambda: on_submit(self.username_var.get().strip(), self.password_var.get()),
-        ).grid(row=2, column=1, sticky="w", pady=(0, 8))
+        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
         ttk.Button(
             form,
             text="Need an account? Register",
@@ -89,8 +88,8 @@ class TkLoginPanel(ttk.Frame):
             width=TK_SIZES["button_width"],
             command=on_to_register,
         ).grid(
-            row=3,
-            column=1,
+            row=5,
+            column=0,
             sticky="w",
         )
 
@@ -146,23 +145,22 @@ class TkRegisterPanel(ttk.Frame):
 
         form = ttk.Frame(self)
         form.grid(row=1, column=1, sticky="ew")
-        form.columnconfigure(0, weight=0)
-        form.columnconfigure(1, weight=1)
+        form.columnconfigure(0, weight=1)
 
         ttk.Label(form, text="Username").grid(row=0, column=0, sticky="w")
         self.username_var = tk.StringVar()
         username_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.username_var)
-        username_entry.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
+        username_entry.grid(row=1, column=0, sticky="ew", pady=(0, 8))
 
-        ttk.Label(form, text="Email").grid(row=1, column=0, sticky="w")
+        ttk.Label(form, text="Email").grid(row=2, column=0, sticky="w")
         self.email_var = tk.StringVar()
         email_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.email_var)
-        email_entry.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
+        email_entry.grid(row=3, column=0, sticky="ew", pady=(0, 8))
 
-        ttk.Label(form, text="Password").grid(row=2, column=0, sticky="w")
+        ttk.Label(form, text="Password").grid(row=4, column=0, sticky="w")
         self.password_var = tk.StringVar()
         password_entry = ttk.Entry(form, width=TK_SIZES["field_width"], textvariable=self.password_var, show="*")
-        password_entry.grid(row=2, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
+        password_entry.grid(row=5, column=0, sticky="ew", pady=(0, 12))
 
         ttk.Button(
             form,
@@ -174,7 +172,7 @@ class TkRegisterPanel(ttk.Frame):
                 self.email_var.get().strip(),
                 self.password_var.get(),
             ),
-        ).grid(row=3, column=1, sticky="w", pady=(0, 8))
+        ).grid(row=6, column=0, sticky="w", pady=(0, 8))
         ttk.Button(
             form,
             text="Have an account? Login",
@@ -182,8 +180,8 @@ class TkRegisterPanel(ttk.Frame):
             width=TK_SIZES["button_width"],
             command=on_to_login,
         ).grid(
-            row=4,
-            column=1,
+            row=7,
+            column=0,
             sticky="w",
         )
 
@@ -268,18 +266,17 @@ class TkSetupPanel(ttk.Frame):
 
         form = ttk.Frame(self)
         form.grid(row=1, column=1, sticky="ew")
-        form.columnconfigure(0, weight=0)
-        form.columnconfigure(1, weight=1)
+        form.columnconfigure(0, weight=1)
 
         ttk.Label(form, text="Mode").grid(row=0, column=0, sticky="w")
         self.mode_var = tk.StringVar(value="")
         self.mode_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.mode_var)
-        self.mode_combo.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
+        self.mode_combo.grid(row=1, column=0, sticky="ew", pady=(0, 8))
 
-        ttk.Label(form, text="Category").grid(row=1, column=0, sticky="w")
+        ttk.Label(form, text="Category").grid(row=2, column=0, sticky="w")
         self.category_var = tk.StringVar(value="")
         self.category_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.category_var)
-        self.category_combo.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
+        self.category_combo.grid(row=3, column=0, sticky="ew", pady=(0, 12))
 
         ttk.Button(
             form,
@@ -290,7 +287,7 @@ class TkSetupPanel(ttk.Frame):
                 self.get_selected_mode_id() or "",
                 self.get_selected_category_id() or "",
             ),
-        ).grid(row=2, column=1, sticky="w", pady=(0, 8))
+        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
         ttk.Button(
             form,
             text="View Leaderboards",
@@ -298,14 +295,14 @@ class TkSetupPanel(ttk.Frame):
             width=TK_SIZES["button_width"],
             command=on_view_leaderboards,
         ).grid(
-            row=3,
-            column=1,
+            row=5,
+            column=0,
             sticky="w",
             pady=(0, 8),
         )
         ttk.Button(form, text="Logout", style="Danger.TButton", command=on_logout).grid(
-            row=4,
-            column=1,
+            row=6,
+            column=0,
             sticky="w",
         )
 
@@ -392,18 +389,17 @@ class TkLeaderboardPanel(ttk.Frame):
 
         form = ttk.Frame(self)
         form.grid(row=1, column=1, sticky="ew")
-        form.columnconfigure(0, weight=0)
-        form.columnconfigure(1, weight=1)
+        form.columnconfigure(0, weight=1)
 
         ttk.Label(form, text="Mode").grid(row=0, column=0, sticky="w")
         self.mode_var = tk.StringVar(value="")
         self.mode_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.mode_var)
-        self.mode_combo.grid(row=0, column=1, sticky="ew", padx=(12, 0), pady=(0, 8))
+        self.mode_combo.grid(row=1, column=0, sticky="ew", pady=(0, 8))
 
-        ttk.Label(form, text="Category").grid(row=1, column=0, sticky="w")
+        ttk.Label(form, text="Category").grid(row=2, column=0, sticky="w")
         self.category_var = tk.StringVar(value="")
         self.category_combo = ttk.Combobox(form, state="readonly", width=TK_SIZES["field_width"], textvariable=self.category_var)
-        self.category_combo.grid(row=1, column=1, sticky="ew", padx=(12, 0), pady=(0, 12))
+        self.category_combo.grid(row=3, column=0, sticky="ew", pady=(0, 12))
 
         ttk.Button(
             form,
@@ -411,10 +407,10 @@ class TkLeaderboardPanel(ttk.Frame):
             style="Accent.TButton",
             width=TK_SIZES["button_width"],
             command=lambda: on_refresh(self.get_selected_category_id() or "", self.get_selected_mode_id() or ""),
-        ).grid(row=2, column=1, sticky="w", pady=(0, 8))
+        ).grid(row=4, column=0, sticky="w", pady=(0, 8))
         ttk.Button(form, text="Back to Menu", style="Secondary.TButton", width=TK_SIZES["button_width"], command=on_back).grid(
-            row=3,
-            column=1,
+            row=5,
+            column=0,
             sticky="w",
         )
 
