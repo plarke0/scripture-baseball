@@ -987,6 +987,7 @@ class TkScriptureBaseballApp:
         self.session.hint_target_index = None
         self.session.round_submitted = False
         self.session.feedback = ""
+        self.session.score_submitted = False
         self._start_round()
 
     def start_new_game(self) -> None:
@@ -1004,6 +1005,12 @@ class TkScriptureBaseballApp:
             self.show_panel("login")
             return
         if self._active_panel == "game":
+            if self.game.is_game_over():
+                message = self._submit_current_score(finalize_message=True)
+                self._enter_setup()
+                if self.setup_panel is not None:
+                    self.setup_panel.set_status(message)
+                return
             self.show_panel("confirm-exit")
             return
         self._enter_setup()
@@ -1103,7 +1110,7 @@ class TkScriptureBaseballApp:
             self.game_panel.set_feedback("Submit an answer before continuing.")
             return
         if self.game.is_game_over():
-            self._finish_game()
+            self.start_new_game()
             return
         self._start_round()
 
@@ -1126,9 +1133,9 @@ class TkScriptureBaseballApp:
             return
         if self.session.round_submitted:
             if self.game.is_game_over():
-                self.game_panel.set_feedback("Game is complete. Press End Game to view results.")
+                self.game_panel.set_feedback("Game is complete. Press Play Again or Back to Menu.")
             else:
-                self.game_panel.set_feedback("Round complete. Start the next round or end the game.")
+                self.game_panel.set_feedback("Round complete. Start the next round or return to menu.")
             return
 
         try:
@@ -1151,9 +1158,9 @@ class TkScriptureBaseballApp:
 
         if self.session.round_submitted:
             if self.game.is_game_over():
-                self.game_panel.set_feedback("Game is complete. Press End Game to view results.")
+                self.game_panel.set_feedback("Game is complete. Press Play Again or Back to Menu.")
             else:
-                self.game_panel.set_feedback("Round complete. Start the next round or end the game.")
+                self.game_panel.set_feedback("Round complete. Start the next round or return to menu.")
             return
 
         try:
@@ -1175,6 +1182,10 @@ class TkScriptureBaseballApp:
         self.game_panel.set_feedback(self.session.feedback)
         self.game_panel.clear_answer()
         self.session.round_submitted = True
+        if self.game.is_game_over():
+            save_message = self._submit_current_score(finalize_message=True)
+            self.session.feedback = f"{self.session.feedback}\n\n{save_message}"
+            self.game_panel.set_feedback(self.session.feedback)
         self._refresh_game_panel()
 
     def _start_round(self) -> None:
@@ -1272,7 +1283,7 @@ class TkScriptureBaseballApp:
 
         if self.session.round_submitted:
             if self.game.is_game_over():
-                self.game_panel.set_controls("End Game", True, False)
+                self.game_panel.set_controls("Play Again", True, False)
                 return
             self.game_panel.set_controls("Next Round", True, False)
             return
@@ -1290,6 +1301,13 @@ class TkScriptureBaseballApp:
         self.session.final_score = self.game.get_final_score()
         mode_name = self._get_mode_name(self.session.selected_mode_id)
         rounds_played = self.session.current_round
+        if self.session.score_submitted:
+            if finalize_message:
+                return f"Completed {rounds_played} rounds in {mode_name}. Score already submitted."
+            return (
+                f"Returned to menu from {mode_name} after {rounds_played} rounds. "
+                "Current score already submitted."
+            )
         if self.session.auth_token and self.session.selected_category_id and self.session.selected_mode_id:
             leaderboard_key = self._build_score_category_id(
                 self.session.selected_category_id,
@@ -1305,6 +1323,8 @@ class TkScriptureBaseballApp:
                 if finalize_message:
                     return f"Game over, but score submission failed: {error}"
                 return f"Returned to menu, but score submission failed: {error}"
+
+            self.session.score_submitted = True
 
             if finalize_message:
                 return f"Completed {rounds_played} rounds in {mode_name}. Score submitted successfully."
